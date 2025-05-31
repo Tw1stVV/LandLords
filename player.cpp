@@ -128,3 +128,29 @@ void Player::playHand(Card& card)
     // 删除玩家打出的这张牌
     m_cards.remove(card);
 }
+
+void Player::setPendingInfo(Player* player, Cards& cards)
+{
+    m_pendCards = cards;
+    m_pendPlayer = player;
+}
+
+Player* Player::getPendPlayer()
+{
+    return m_pendPlayer;
+}
+
+Cards Player::getPendCards()
+{
+    return m_pendCards;
+}
+
+void Player::prepareCallLord()
+{
+    // 基类不做实现，留给子类处理
+}
+
+void Player::preparePlayHand()
+{
+    // 基类不做实现，留给子类处理
+}

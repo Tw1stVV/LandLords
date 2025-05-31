@@ -76,12 +76,33 @@ public:
     void grabLordBet(int point);
 
     // 存储发牌时得到的扑克牌
-    void storeDispatchCard(Card& card); // 存储一张牌
-    void storeDispatchCard(Cards& cards);
+    void storeDispatchCard(Card& card);   // 存储一张牌
+    void storeDispatchCard(Cards& cards); // 存储多张牌，如发牌时的三张地主牌
+
+    // 得到玩家所有的牌
+    Cards getCards();
+
+    // 清空玩家的牌
+    void clearCards();
+
+    // 玩家打出某张牌
+    void playHand(Card& card);
+
+    // 设置出牌的玩家待处理的扑克牌
+    void setPendingInfo(Player* player, Cards& cards);
+
+    // 获取出牌的玩家
+    Player* getPendPlayer();
+
+    // 获取打出的扑克牌
+    Cards getPendCards();
+
+    virtual void prepareCallLord();
+    virtual void preparePlayHand();
 
 signals:
 
-private:
+protected:
     QString m_name;
     Role m_role;
     Type m_type;
@@ -91,7 +112,9 @@ private:
     bool isWin;
     Player* m_previous;
     Player* m_next;
-    Cards m_crads;
+    Cards m_cards;
+    Cards m_pendCards;
+    Player* m_pendPlayer;
 };
 
 #endif // PLAYER_H
