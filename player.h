@@ -1,6 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include "card.h"
+#include "cards.h"
+
 #include <QObject>
 
 class Player : public QObject
@@ -69,6 +72,13 @@ public:
     Player* next() const;
     void setNext(Player* newNext);
 
+    // 抢地主/叫地主
+    void grabLordBet(int point);
+
+    // 存储发牌时得到的扑克牌
+    void storeDispatchCard(Card& card); // 存储一张牌
+    void storeDispatchCard(Cards& cards);
+
 signals:
 
 private:
@@ -81,6 +91,7 @@ private:
     bool isWin;
     Player* m_previous;
     Player* m_next;
+    Cards m_crads;
 };
 
 #endif // PLAYER_H

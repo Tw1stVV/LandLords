@@ -1,10 +1,10 @@
 #include "player.h"
 
-Player::Player(QObject *parent) : QObject{parent}
+Player::Player(QObject* parent) : QObject{parent}
 {
 }
 
-Player::Player(QString name, QObject *parent) : QObject{parent}, m_name(name)
+Player::Player(QString name, QObject* parent) : QObject{parent}, m_name(name)
 {
 }
 
@@ -13,7 +13,7 @@ QString Player::name() const
     return m_name;
 }
 
-void Player::setName(const QString &newName)
+void Player::setName(const QString& newName)
 {
     m_name = newName;
 }
@@ -78,22 +78,53 @@ void Player::setIsWin(bool newIsWin)
     isWin = newIsWin;
 }
 
-Player *Player::previous() const
+Player* Player::previous() const
 {
     return m_previous;
 }
 
-void Player::setPrevious(Player *newPrevious)
+void Player::setPrevious(Player* newPrevious)
 {
     m_previous = newPrevious;
 }
 
-Player *Player::next() const
+Player* Player::next() const
 {
     return m_next;
 }
 
-void Player::setNext(Player *newNext)
+void Player::setNext(Player* newNext)
 {
     m_next = newNext;
+}
+
+void Player::grabLordBet(int point)
+{
+    // 等写了游戏策略在实现这个函数
+}
+
+void Player::storeDispatchCard(Card& card)
+{
+    m_cards.add(card);
+}
+
+void Player::storeDispatchCard(Cards& cards)
+{
+    m_cards.add(cards);
+}
+
+Cards Player::getCards()
+{
+    return m_cards;
+}
+
+void Player::clearCards()
+{
+    m_cards.clear();
+}
+
+void Player::playHand(Card& card)
+{
+    // 删除玩家打出的这张牌
+    m_cards.remove(card);
 }
