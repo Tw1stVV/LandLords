@@ -12,6 +12,13 @@ public:
 
     // 使用父类构造函数
     using Player::Player;
+
+
+
+    // Player interface
+public:
+    virtual void prepareCallLord() override;
+    virtual void preparePlayHand() override;
 };
 
 #endif // USERPLAYER_H
