@@ -5,6 +5,10 @@ Card::Card()
 {
 }
 
+Card::Card(CardPoint point, CardSuit suit) : m_suit(suit), m_point(point)
+{
+}
+
 Card::CardPoint Card::getPoint() const
 {
     return m_point;
@@ -25,7 +29,7 @@ void Card::setSuit(CardSuit newSuit)
     m_suit = newSuit;
 }
 
-bool lessSort(const Card &c1, const Card &c2)
+bool lessSort(const Card& c1, const Card& c2)
 {
     if (c1.getPoint() == c2.getPoint())
     {
@@ -37,18 +41,18 @@ bool lessSort(const Card &c1, const Card &c2)
     }
 }
 
-bool greaterSort(const Card &c1, const Card &c2)
+bool greaterSort(const Card& c1, const Card& c2)
 {
     return !lessSort(c1, c2);
 }
 
-bool operator==(const Card &left, const Card &right)
+bool operator==(const Card& left, const Card& right)
 {
     return (left.getPoint() == right.getPoint())
            && (left.getSuit() == right.getSuit());
 }
 
-uint qHash(const Card &card)
+uint qHash(const Card& card)
 {
     return card.getPoint() * 100 + card.getSuit();
 }

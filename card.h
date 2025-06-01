@@ -38,6 +38,7 @@ public:
     };
 
     Card();
+    Card(CardPoint point, CardSuit suit);
 
     CardPoint getPoint() const;
     void setPoint(CardPoint newPoint);
@@ -52,10 +53,10 @@ private:
 
 using CardList = QList<Card>;
 
-bool lessSort(const Card &c1, const Card &c2);
-bool greaterSort(const Card &c1, const Card &c2);
+bool lessSort(const Card& c1, const Card& c2);
+bool greaterSort(const Card& c1, const Card& c2);
 
-bool operator==(const Card &left, const Card &right);
-uint qHash(const Card &card);
+bool operator==(const Card& left, const Card& right);
+uint qHash(const Card& card);
 
 #endif // CARD_H
