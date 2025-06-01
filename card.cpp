@@ -48,11 +48,15 @@ bool greaterSort(const Card& c1, const Card& c2)
 
 bool operator==(const Card& left, const Card& right)
 {
-    return (left.getPoint() == right.getPoint())
-           && (left.getSuit() == right.getSuit());
+    return (left.getPoint() == right.getPoint()) && (left.getSuit() == right.getSuit());
 }
 
 uint qHash(const Card& card)
 {
     return card.getPoint() * 100 + card.getSuit();
+}
+
+bool operator<(const Card& left, const Card& right)
+{
+    return lessSort(left, right);
 }

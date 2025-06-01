@@ -3,8 +3,9 @@
 
 #include <QWidget>
 
-namespace Ui {
-class ScorePanel;
+namespace Ui
+{
+    class ScorePanel;
 }
 
 class ScorePanel : public QWidget
@@ -12,11 +13,12 @@ class ScorePanel : public QWidget
     Q_OBJECT
 
 public:
-    explicit ScorePanel(QWidget *parent = nullptr);
+    explicit ScorePanel(QWidget* parent = nullptr);
     ~ScorePanel();
+    void setScore(int left, int right, int user);
 
 private:
-    Ui::ScorePanel *ui;
+    Ui::ScorePanel* ui;
 };
 
 #endif // SCOREPANEL_H
