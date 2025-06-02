@@ -51,6 +51,18 @@ private:
     // 发牌前的设置
     void startDispatchCard();
 
+    // 定期器处理
+    void onDispatchCard();
+
+    // 移动扑克牌
+    void cardMoveStep(Player* curPlayer, int curPos);
+
+    // 处理分发得到的扑克牌
+    void disposeCard(Player* player, Cards& cards);
+
+    // 更新扑克牌在窗口中的窗口
+    void updatePlayerCards(Player* player);
+
 private:
     enum CardAlign
     {
@@ -94,7 +106,7 @@ private:
     CardPanel* m_moveCard;                   // 发牌过程中移动的扑克牌
     QList<CardPanel*> m_lastThreeCard;       // 最后三张地主牌
     QPoint baseCardPos;                      // 发牌区的扑克牌的位置
-    GameControl::GameStatus m_gameStatus;    //  游戏状态
+    GameControl::GameStatus m_gameStatus;    // 游戏状态
     QTimer* m_timer;                         // 定时器
     // QWidget interface
 protected:

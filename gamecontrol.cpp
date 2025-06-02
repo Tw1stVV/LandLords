@@ -2,7 +2,7 @@
 #include "userplayer.h"
 #include "robot.h"
 #include "player.h"
-
+#include <qDebug>
 #include <QRandomGenerator>
 
 GameControl::GameControl(QObject* parent) : QObject{parent}
@@ -33,14 +33,14 @@ void GameControl::playerInit()
     //    机器人A        机器人B
     //            自己
 
+    m_robotLeft->setPrevious(m_robotRight);
+    m_robotLeft->setNext(m_user);
+
+    m_robotRight->setPrevious(m_user);
+    m_robotRight->setNext(m_robotLeft);
+
     m_user->setPrevious(m_robotLeft);
     m_user->setNext(m_robotRight);
-
-    m_robotLeft->setPrevious(m_user);
-    m_robotLeft->setNext(m_robotRight);
-
-    m_robotRight->setPrevious(m_robotLeft);
-    m_robotRight->setNext(m_user);
 
     // 指定当前玩家为user,游戏初始化时玩家可以先抢地主
     m_curPlayer = m_user;
@@ -86,7 +86,7 @@ void GameControl::initCards()
     m_allCards.clear();
     for (int p = Card::Card_Begin + 1; p < Card::Card_SJ; ++p)
     {
-        for (int s = Card::Suit_Begin; s < Card::Suit_End; ++s)
+        for (int s = Card::Suit_Begin + 1; s < Card::Suit_End; ++s)
         {
             Card c((Card::CardPoint)p, (Card::CardSuit)s);
             m_allCards.add(c);

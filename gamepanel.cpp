@@ -16,6 +16,7 @@
 Gamepanel::Gamepanel(QWidget* parent) : QMainWindow(parent), ui(new Ui::Gamepanel)
 {
     ui->setupUi(this);
+    this->setAutoFillBackground(true);
 
     // 1. 背景图
     int num = QRandomGenerator::global()->bounded(1, 11); //[1,10)
@@ -23,7 +24,7 @@ Gamepanel::Gamepanel(QWidget* parent) : QMainWindow(parent), ui(new Ui::Gamepane
     m_backgroundImage.load(path);
 
     // 2. 设置窗口标题，大小，图标
-    this->setFixedSize(1000, 650); // 不允许改变窗口大小
+    this->setFixedSize(1200, 750); // 不允许改变窗口大小
     this->setWindowTitle("嘿嘿斗地主");
     this->setWindowIcon(QIcon(":/images/logo.ico"));
 
@@ -94,9 +95,9 @@ void Gamepanel::initCardMap()
     m_cardBackgroundImage = pixmap.copy(
         m_cardSize.width() * 2, m_cardSize.height() * 4, m_cardSize.width(), m_cardSize.height());
     // 正常花色牌
-    for (int y = 0, suit = Card::Suit_Begin; suit < Card::Suit_End; ++y, ++suit)
+    for (int y = 0, suit = Card::Suit_Begin + 1; suit < Card::Suit_End; ++y, ++suit)
     {
-        for (int x = 0, pt = Card::Card_Begin; pt < Card::Card_End; ++x, ++pt)
+        for (int x = 0, pt = Card::Card_Begin + 1; pt < Card::Card_End; ++x, ++pt)
         {
             Card c((Card::CardPoint)pt, (Card::CardSuit)suit);
             // 裁剪图片
@@ -106,9 +107,9 @@ void Gamepanel::initCardMap()
 
     // 大小王
     Card c(Card::Card_SJ, Card::Suit_Begin); // 小王
-    cropImage(pixmap, 0, m_cardSize.height() * 4, c);
+    cropImage(pixmap, 0 * m_cardSize.width(), m_cardSize.height() * 4, c);
     c.setPoint(Card::Card_BJ); // 大王
-    cropImage(pixmap, 1, m_cardSize.height() * 4, c);
+    cropImage(pixmap, 1 * m_cardSize.width(), m_cardSize.height() * 4, c);
 }
 
 void Gamepanel::cropImage(QPixmap& pix, int x, int y, Card& c)
@@ -205,13 +206,10 @@ void Gamepanel::initGameScene()
 {
     // 1. 发牌区的扑克牌
     m_baseCards = new CardPanel(this);
-    // 设置窗口大小根据图片自适应，否则窗口会压扁图片
-    m_baseCards->resize(m_cardBackgroundImage.size());
     m_baseCards->setImage(m_cardBackgroundImage, m_cardBackgroundImage);
 
     // 2. 发牌过程中移动的扑克牌
     m_moveCard = new CardPanel(this);
-    m_moveCard->resize(m_cardBackgroundImage.size());
     m_moveCard->setImage(m_cardBackgroundImage, m_cardBackgroundImage);
 
     // 3. 最后三张底牌的显示
@@ -219,7 +217,6 @@ void Gamepanel::initGameScene()
     {
         CardPanel* panel = new CardPanel(this);
         panel->setImage(m_cardBackgroundImage, m_cardBackgroundImage);
-        panel->resize(m_cardBackgroundImage.size());
         panel->hide();
         m_lastThreeCard.push_back(panel);
     }
@@ -287,13 +284,138 @@ void Gamepanel::startDispatchCard()
     ui->btnGroup->selectPanel(ButtonGroup::Empty);
 
     // 启动定时器
-    m_timer->start(10);
+    m_timer->start(20);
 
-    // 播放背景英语
+    // 播放背景音乐
 }
 
 void Gamepanel::onDispatchCard()
 {
+    // 记录移动中的扑克牌位置
+    static int curMoveCard = 0;
+
+    // 当前玩家
+    Player* curPlayer = m_gameCtl->curPlayer();
+
+    // 当扑克牌移动到玩家扑克牌区域时
+    if (curMoveCard >= 100)
+    {
+        // 给当前的玩家发一张牌
+        Card card = m_gameCtl->takeOneCard();
+        curPlayer->storeDispatchCard(card);
+
+        // 在玩家扑克牌显示区域更新扑克牌
+        Cards cards(card);
+        disposeCard(curPlayer, cards);
+
+        // 重置扑克牌位置，切换下一个玩家
+        curMoveCard = 0;
+        m_gameCtl->setCurPlayer(curPlayer->next());
+        curPlayer = m_gameCtl->curPlayer();
+
+        // 判断扑克牌是否发完
+        if (m_gameCtl->getSurplusCards().cardCount() == 3)
+        {
+            // 停止定时器
+            m_timer->stop();
+            // 游戏状态切换 发牌->叫地主
+            gameStartPrecess(GameControl::CallingLord);
+
+            m_moveCard->hide();
+            m_baseCards->hide();
+            return;
+        }
+    }
+
+    // 移动扑克牌
+    cardMoveStep(curPlayer, curMoveCard);
+    curMoveCard += 15;
+}
+
+// cardMoveStep只做发牌动画，不参与实际发牌操作
+void Gamepanel::cardMoveStep(Player* curPlayer, int curPos)
+{
+    // 在函数多次调用中得到每个玩家扑克牌展示区域
+    QRect curRect = m_contextMap[curPlayer].cardRect;
+
+    // 每个玩家扑克牌展示区域和牌堆之间的单位步长
+    int unit[] = {
+        (baseCardPos.x() - curRect.left()) / 100, // 左侧玩家
+        (curRect.left() - baseCardPos.x()) / 100, // 右侧玩家
+        (curRect.top() - baseCardPos.y()) / 100,  // 底部玩家
+    };
+
+    // 每次扑克牌移动时每个玩家对应的扑克牌窗口实时坐标
+    QPoint pos[] = {
+        QPoint(baseCardPos.x() - (unit[0] * curPos), baseCardPos.y()),
+        QPoint(baseCardPos.x() + (unit[1] * curPos), baseCardPos.y()),
+        QPoint(baseCardPos.x(), baseCardPos.y() + (unit[2] * curPos)),
+    };
+
+    // 移动扑克牌窗口
+    int index = m_playerList.indexOf(curPlayer);
+    m_moveCard->move(pos[index]);
+
+    // 临界状态转换
+    if (curPos == 0)
+        m_moveCard->show();
+    else if (curPos >= 100)
+        m_moveCard->hide();
+}
+
+void Gamepanel::disposeCard(Player* player, Cards& cards)
+{
+    CardList cardList = cards.toCardList();
+
+    // 设置每张扑克牌窗口的所有者
+    for (auto& iter : cardList)
+    {
+        CardPanel* panel = m_cardMap[iter];
+        panel->setOwner(player);
+    }
+
+    // 更新扑克牌在窗口中的窗口
+    updatePlayerCards(player);
+}
+
+void Gamepanel::updatePlayerCards(Player* player)
+{
+    // 拿到玩家拥有的牌作为key从m_cardMap中取出对应的cardPanel
+    Cards cards = player->getCards();
+    CardList list = cards.toCardList();
+
+    // 拿到玩家对应的扑克牌展示区域
+    QRect rect = m_contextMap[player].cardRect;
+
+    // 计算本次更新的扑克牌在窗口中显示的位置
+    int space = 25;
+    // 水平显示
+    int HorX = rect.left() + (rect.width() - (list.size() - 1) * space - m_baseCards->width()) / 2;
+    int HorY = rect.top() + (rect.height() - m_baseCards->height()) / 2;
+
+    // 垂直显示
+    int VerX = rect.left() + (rect.width() - m_baseCards->width()) / 2;
+    int VerY = rect.top() + (rect.height() - (list.size() - 1) * space - m_baseCards->height()) / 2;
+
+    for (int i = 0; i < list.size(); ++i)
+    {
+        // 拿到扑克牌对应的窗口
+        CardPanel* panel = m_cardMap[list.at(i)];
+        panel->show();
+        panel->raise();
+        panel->setFrontSide(m_contextMap[player].isFrontSide);
+
+        // 水平或垂直显示
+        if (m_contextMap[player].align == Horizontal)
+        {
+            if (panel->isSelecetd()) HorY -= 10;
+            panel->move(HorX + space * i, HorY);
+        }
+        else
+        {
+            panel->move(VerX, VerY + space * i);
+        }
+    }
 }
 
 void Gamepanel::paintEvent(QPaintEvent* event)
