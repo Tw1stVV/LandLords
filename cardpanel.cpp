@@ -1,68 +1,68 @@
-#include "cardpenal.h"
+#include "cardpanel.h"
 
 #include "player.h"
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
 
-CardPenal::CardPenal(QWidget* parent)
+CardPanel::CardPanel(QWidget* parent)
     : QWidget{parent}
 {
     m_isfront = true;
 }
 
-void CardPenal::setImage(QPixmap& front, QPixmap& back)
+void CardPanel::setImage(QPixmap& front, QPixmap& back)
 {
     m_front = front;
     m_back  = back;
 }
 
-QPixmap CardPenal::getImage()
+QPixmap CardPanel::getImage()
 {
     return m_front;
 }
 
-void CardPenal::setFrontSide(bool flag)
+void CardPanel::setFrontSide(bool flag)
 {
     m_isfront = flag;
 }
 
-bool CardPenal::isFrontSide()
+bool CardPanel::isFrontSide()
 {
     return m_isfront;
 }
 
-void CardPenal::setSelected(bool flag)
+void CardPanel::setSelected(bool flag)
 {
     m_selected = flag;
 }
 
-bool CardPenal::isSelecetd()
+bool CardPanel::isSelecetd()
 {
     return m_selected;
 }
 
-void CardPenal::setCard(Card& card)
+void CardPanel::setCard(Card& card)
 {
     m_card = card;
 }
 
-Card CardPenal::getCard()
+Card CardPanel::getCard()
 {
     return m_card;
 }
 
-void CardPenal::setOwner(Player* player)
+void CardPanel::setOwner(Player* player)
 {
     m_owner = player;
 }
 
-Player* CardPenal::getOwner()
+Player* CardPanel::getOwner()
 {
     return m_owner;
 }
 
-void CardPenal::paintEvent(QPaintEvent* event)
+void CardPanel::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
     if (m_isfront)
@@ -73,4 +73,4 @@ void CardPenal::paintEvent(QPaintEvent* event)
 }
 
 
-void CardPenal::mousePressEvent(QMouseEvent* event) {}
+void CardPanel::mousePressEvent(QMouseEvent* event) {}

@@ -2,10 +2,13 @@
 
 Player::Player(QObject* parent) : QObject{parent}
 {
+    m_score = 0;
+    isWin = false;
 }
 
-Player::Player(QString name, QObject* parent) : QObject{parent}, m_name(name)
+Player::Player(QString name, QObject* parent) : Player(parent)
 {
+    m_name = name;
 }
 
 QString Player::name() const

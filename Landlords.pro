@@ -8,7 +8,7 @@ CONFIG += c++17
 SOURCES += \
     buttongroup.cpp \
     card.cpp \
-    cardpenal.cpp \
+    cardpanel.cpp \
     cards.cpp \
     gamecontrol.cpp \
     main.cpp \
@@ -22,7 +22,7 @@ SOURCES += \
 HEADERS += \
     buttongroup.h \
     card.h \
-    cardpenal.h \
+    cardpanel.h \
     cards.h \
     gamecontrol.h \
     gamepanel.h \

@@ -4,10 +4,12 @@
 #include "card.h"
 #include "cards.h"
 #include <QMainWindow>
-class CardPenal;
-class GameControl;
+#include "gamecontrol.h"
+class CardPanel;
+
 class Player;
 class QLabel;
+class QTimer;
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -40,6 +42,14 @@ private:
 
     // 初始化玩家在窗口中的上下文环境
     void initPlayerContext();
+
+    // 初始化游戏场景
+    void initGameScene();
+
+    // 处理游戏状态
+    void gameStartPrecess(GameControl::GameStatus status);
+    // 发牌前的设置
+    void startDispatchCard();
 
 private:
     enum CardAlign
@@ -76,11 +86,16 @@ private:
     QPixmap m_backgroundImage;
     GameControl* m_gameCtl;
     QList<Player*> m_playerList;             // 保存玩家类
-    QMap<Card, CardPenal*> m_cardMap;        // 保存卡牌和对应的卡牌窗口
+    QMap<Card, CardPanel*> m_cardMap;        // 保存卡牌和对应的卡牌窗口
     QSize m_cardSize;                        // 每张扑克牌的大小
     QPixmap m_cardBackgroundImage;           // 扑克牌背面图片
     QMap<Player*, PlayContext> m_contextMap; // 存储玩家上下文信息
-
+    CardPanel* m_baseCards;                  // 发牌区的扑克牌
+    CardPanel* m_moveCard;                   // 发牌过程中移动的扑克牌
+    QList<CardPanel*> m_lastThreeCard;       // 最后三张地主牌
+    QPoint baseCardPos;                      // 发牌区的扑克牌的位置
+    GameControl::GameStatus m_gameStatus;    //  游戏状态
+    QTimer* m_timer;                         // 定时器
     // QWidget interface
 protected:
     virtual void paintEvent(QPaintEvent* event) override;

@@ -1,16 +1,16 @@
-#ifndef CARDPENAL_H
-#define CARDPENAL_H
+#ifndef CARDPANEL_H
+#define CARDPANEL_H
 
 #include "card.h"
 #include <QWidget>
 
 class Player;
 
-class CardPenal : public QWidget
+class CardPanel : public QWidget
 {
     Q_OBJECT
 public:
-    explicit CardPenal(QWidget* parent = nullptr);
+    explicit CardPanel(QWidget* parent = nullptr);
 
     // 设置获取图片函数
     void    setImage(QPixmap& front, QPixmap& back);
@@ -51,4 +51,4 @@ protected:
     virtual void mousePressEvent(QMouseEvent *event) override;
 };
 
-#endif   // CARDPENAL_H
+#endif   // CARDPANEL_H

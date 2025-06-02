@@ -29,9 +29,6 @@ void GameControl::playerInit()
     sex = (Player::Sex)QRandomGenerator::global()->bounded(2);
     m_user->setSex(sex);
 
-    // 分数
-    clearPlayerScore();
-
     // 出牌顺序 逆时针
     //    机器人A        机器人B
     //            自己
