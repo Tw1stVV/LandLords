@@ -5,8 +5,7 @@
 #include <QPaintEvent>
 #include <QPainter>
 
-CardPanel::CardPanel(QWidget* parent)
-    : QWidget{parent}
+CardPanel::CardPanel(QWidget* parent) : QWidget{parent}
 {
     m_isfront = true;
 }
@@ -14,7 +13,7 @@ CardPanel::CardPanel(QWidget* parent)
 void CardPanel::setImage(QPixmap& front, QPixmap& back)
 {
     m_front = front;
-    m_back  = back;
+    m_back = back;
 }
 
 QPixmap CardPanel::getImage()
@@ -69,8 +68,10 @@ void CardPanel::paintEvent(QPaintEvent* event)
         painter.drawPixmap(this->rect(), m_front);
     else
         painter.drawPixmap(this->rect(), m_back);
+    this->resize(m_front.size());
     event->accept();
 }
 
-
-void CardPanel::mousePressEvent(QMouseEvent* event) {}
+void CardPanel::mousePressEvent(QMouseEvent* event)
+{
+}
