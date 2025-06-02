@@ -6,34 +6,39 @@ Cards::Cards()
 {
 }
 
-void Cards::add(const Card &card)
+Cards::Cards(Card card)
+{
+    add(card);
+}
+
+void Cards::add(const Card& card)
 {
     m_cards.insert(card);
 }
 
-void Cards::add(const Cards &cards)
+void Cards::add(const Cards& cards)
 {
     m_cards.unite(cards.m_cards);
 }
 
-Cards &Cards::operator<<(const Card &card)
+Cards& Cards::operator<<(const Card& card)
 {
     add(card);
     return *this;
 }
 
-Cards &Cards::operator<<(const Cards &cards)
+Cards& Cards::operator<<(const Cards& cards)
 {
     add(cards);
     return *this;
 }
 
-void Cards::remove(Card &card)
+void Cards::remove(Card& card)
 {
     m_cards.remove(card);
 }
 
-void Cards::remove(Cards &cards)
+void Cards::remove(Cards& cards)
 {
     m_cards.subtract(cards.m_cards);
 }
@@ -98,21 +103,22 @@ int Cards::pointCount(Card::CardPoint point)
     return count;
 }
 
-bool Cards::contains(const Card &card)
+bool Cards::contains(const Card& card)
 {
     return m_cards.contains(card);
 }
 
-bool Cards::contails(const Cards &cards)
+bool Cards::contails(const Cards& cards)
 {
     return m_cards.contains(cards.m_cards);
 }
 
 Card Cards::takeRandCard()
 {
+    // 随机取出一张牌
     int num = QRandomGenerator::global()->bounded(m_cards.size());
     QSet<Card>::const_iterator it = m_cards.constBegin();
-    for (int i = 0; i < num; ++it);
+    for (int i = 0; i < num; ++it, ++i);
     Card card = *it;
     m_cards.erase(it);
     return card;

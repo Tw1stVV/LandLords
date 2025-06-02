@@ -6,6 +6,7 @@ class Cards
 {
 public:
     Cards();
+    Cards(Card card);
     enum sortType
     {
         Asc,
@@ -14,16 +15,16 @@ public:
     };
 
     // 添加扑克牌
-    void add(const Card &card);
-    void add(const Cards &cards);
+    void add(const Card& card);
+    void add(const Cards& cards);
 
     // 一次性添加多张扑克牌
-    Cards &operator<<(const Card &card);
-    Cards &operator<<(const Cards &cards);
+    Cards& operator<<(const Card& card);
+    Cards& operator<<(const Cards& cards);
 
     // 删除扑克牌
-    void remove(Card &card);
-    void remove(Cards &cards);
+    void remove(Card& card);
+    void remove(Cards& cards);
 
     // 扑克牌数量
     int cardCount();
@@ -39,8 +40,8 @@ public:
     // 指定的牌的数量
     int pointCount(Card::CardPoint point);
     // 某张或某几张牌是否在集合中
-    bool contains(const Card &card);
-    bool contails(const Cards &cards);
+    bool contains(const Card& card);
+    bool contails(const Cards& cards);
 
     // 随机取出一张扑克牌
     Card takeRandCard();
