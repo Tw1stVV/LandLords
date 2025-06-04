@@ -103,7 +103,7 @@ void Player::setNext(Player* newNext)
 
 void Player::grabLordBet(int point)
 {
-    // 等写了游戏策略在实现这个函数
+    emit notifyGrabLordBet(this, point);
 }
 
 void Player::storeDispatchCard(Card& card)

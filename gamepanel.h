@@ -48,6 +48,7 @@ private:
 
     // 处理游戏状态
     void gameStartPrecess(GameControl::GameStatus status);
+
     // 发牌前的设置
     void startDispatchCard();
 
@@ -62,6 +63,13 @@ private:
 
     // 更新扑克牌在窗口中的窗口
     void updatePlayerCards(Player* player);
+
+private slots:
+    // 处理玩家状态变化
+    void onPlayerStatusChanged(Player* player, GameControl::PlayerStatus status);
+
+    // 处理玩家抢地主
+    void onNotifyGrabLordBet(Player* player, int point, bool firstCallLord);
 
 private:
     enum CardAlign
@@ -104,7 +112,7 @@ private:
     QMap<Player*, PlayContext> m_contextMap; // 存储玩家上下文信息
     CardPanel* m_baseCards;                  // 发牌区的扑克牌
     CardPanel* m_moveCard;                   // 发牌过程中移动的扑克牌
-    QList<CardPanel*> m_lastThreeCard;       // 最后三张地主牌
+    QList<CardPanel*> m_lastThreeCard;       // 最后三张地主牌的窗口
     QPoint baseCardPos;                      // 发牌区的扑克牌的位置
     GameControl::GameStatus m_gameStatus;    // 游戏状态
     QTimer* m_timer;                         // 定时器

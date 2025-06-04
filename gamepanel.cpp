@@ -66,6 +66,10 @@ void Gamepanel::gameControlInit()
     UserPlayer* user = m_gameCtl->user();
     // 存储顺序 leftRobot rightRobot User
     m_playerList << left << right << user;
+
+    connect(m_gameCtl, &GameControl::playerStatusChanged, this, &Gamepanel::onPlayerStatusChanged);
+    connect(m_gameCtl, &GameControl::notifyGrabLordBet, this, &Gamepanel::onNotifyGrabLordBet);
+    connect(m_gameCtl, &GameControl::gameStatusChanged, this, &Gamepanel::gameStartPrecess);
 }
 
 void Gamepanel::updatePlayerScore()
@@ -148,7 +152,11 @@ void Gamepanel::initButtonGroup()
 
     connect(ui->btnGroup, &ButtonGroup::playHand, this, [=]() {});
     connect(ui->btnGroup, &ButtonGroup::pass, this, [=]() {});
-    connect(ui->btnGroup, &ButtonGroup::betPoint, this, [=]() {});
+    connect(
+        ui->btnGroup,
+        &ButtonGroup::betPoint,
+        this,
+        [=](int bet) { m_gameCtl->user()->grabLordBet(bet); });
 }
 
 void Gamepanel::initPlayerContext()
@@ -242,8 +250,24 @@ void Gamepanel::gameStartPrecess(GameControl::GameStatus status)
     m_gameStatus = status;
     switch (status)
     {
+        // 发牌状态
         case GameControl::DispatchCord: startDispatchCard(); break;
-        case GameControl::CallingLord: break;
+        // 叫地主状态
+        case GameControl::CallingLord:
+        {
+            // 取出地主牌数据
+            CardList list = m_gameCtl->getSurplusCards().toCardList();
+            // 给地主牌窗口设置图片
+            for (int i = 0; i < list.size(); ++i)
+            {
+                QPixmap p = m_cardMap[list.at(i)]->getImage();
+                m_lastThreeCard.at(i)->setImage(p, m_cardBackgroundImage);
+                m_lastThreeCard.at(i)->hide();
+            }
+            // 开始叫地主
+            m_gameCtl->startLordCard();
+            break;
+        }
         case GameControl::PlayingHand: break;
         default: break;
     }
@@ -322,7 +346,7 @@ void Gamepanel::onDispatchCard()
             gameStartPrecess(GameControl::CallingLord);
 
             m_moveCard->hide();
-            m_baseCards->hide();
+            // m_baseCards->hide();
             return;
         }
     }
@@ -408,7 +432,8 @@ void Gamepanel::updatePlayerCards(Player* player)
         // 水平或垂直显示
         if (m_contextMap[player].align == Horizontal)
         {
-            if (panel->isSelecetd()) HorY -= 10;
+            if (panel->isSelecetd())
+                HorY -= 10;
             panel->move(HorX + space * i, HorY);
         }
         else
@@ -416,6 +441,44 @@ void Gamepanel::updatePlayerCards(Player* player)
             panel->move(VerX, VerY + space * i);
         }
     }
+}
+
+void Gamepanel::onPlayerStatusChanged(Player* player, GameControl::PlayerStatus status)
+{
+    switch (status)
+    {
+        case GameControl::ThinkingForCallLord:
+            // 只有玩家抢地主状态才显示按钮，机器人玩家不显示
+            if (player == m_gameCtl->user())
+                ui->btnGroup->selectPanel(ButtonGroup::CallLord, m_gameCtl->getPlayerMaxBetPoint());
+
+            break;
+        case GameControl::ThinkingForPlayHand: break;
+        case GameControl::Winning: break;
+        default: break;
+    }
+}
+
+void Gamepanel::onNotifyGrabLordBet(Player* player, int point, bool firstCallLord)
+{
+    // 显示玩家抢地主信息
+    PlayContext context = m_contextMap[player];
+    if (point == 0)
+    {
+        context.info->setPixmap(QPixmap(":/images/buqinag.png"));
+    }
+    else
+    { // 第一个抢地主的玩家显示“叫地主”，其余的显示“抢地主”
+        if (firstCallLord)
+            context.info->setPixmap(QPixmap(":/images/jiaodizhu.png"));
+        else
+            context.info->setPixmap(QPixmap(":/images/qiangdizhu.png"));
+    }
+
+    context.info->show();
+
+    // 显示叫地主的得分
+    // 播放分数的音乐
 }
 
 void Gamepanel::paintEvent(QPaintEvent* event)

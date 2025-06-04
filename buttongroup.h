@@ -28,7 +28,7 @@ public:
     void initButtons();
 
     // page页切换处理
-    void selectPanel(Panel type);
+    void selectPanel(Panel type, int point = 0);
 
 signals:
     // 开始游戏

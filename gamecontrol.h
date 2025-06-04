@@ -7,6 +7,23 @@ class UserPlayer;
 class Robot;
 class Player;
 
+struct BetReord
+{
+    BetReord()
+    {
+        reset();
+    }
+    void reset()
+    {
+        player = nullptr;
+        betPoint = 0;
+        grabbingLordTimers = 0;
+    }
+    Player* player;         // 抢地主玩家
+    int betPoint;           // 下注点数
+    int grabbingLordTimers; // 本一共有几个玩家抢过地主
+};
+
 class GameControl : public QObject
 {
     Q_OBJECT
@@ -23,8 +40,8 @@ public:
     // 玩家状态
     enum PlayerStatus
     {
-        ThkingForCallLorc,
-        ThkingForPlayHand,
+        ThinkingForCallLord,
+        ThinkingForPlayHand,
         Winning
     };
 
@@ -55,7 +72,7 @@ public:
     void resetCardData();
 
     // 准备叫地主
-    void startLordCard();
+    void startLordCard(); // 抢地主入口
 
     // 成为地主
     void becomeLord(Player* player);
@@ -63,7 +80,22 @@ public:
     // 清空玩家得分
     void clearPlayerScore();
 
+    // 获取玩家下注的最大点数
+    int getPlayerMaxBetPoint();
+
+private slots:
+    // 处理叫地主
+    void onGrabBet(Player* player, int point);
 signals:
+    // 玩家状态变化
+    void playerStatusChanged(Player* player, PlayerStatus status);
+
+    // 通知主界面谁叫地主，下注多少分
+    void notifyGrabLordBet(Player* player, int point, bool firstCallLord);
+
+    // 游戏状态切换
+    void gameStatusChanged(GameStatus status);
+
 private:
     Robot* m_robotLeft;
     Robot* m_robotRight;
@@ -72,6 +104,7 @@ private:
     Cards m_pendCards;    // 打出的牌
     Player* m_pendPlayer; // 出牌的玩家
     Cards m_allCards;
+    BetReord m_betRecord; // 抢地主数据
 };
 
 #endif // GAMECONTROL_H

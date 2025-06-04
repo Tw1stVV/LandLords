@@ -34,7 +34,7 @@ void ButtonGroup::initButtons()
     ui->btnOneScore->setImage(":/images/1fen-1.png", ":/images/1fen-2.png", ":/images/1fen-3.png");
     ui->btnTwoScore->setImage(":/images/2fen-1.png", ":/images/2fen-2.png", ":/images/2fen-3.png");
     ui->btnThreeScore->setImage(
-        ":/images/3 fen-1.png", ":/images/3fen-2.png", ":/images/3fen-3.png");
+        ":/images/3fen-1.png", ":/images/3fen-2.png", ":/images/3fen-3.png");
 
     // 设置按钮大小
     QList<MyButton*> list;
@@ -60,7 +60,29 @@ void ButtonGroup::initButtons()
     connect(ui->btnThreeScore, &MyButton::clicked, this, [=]() { emit betPoint(3); });
 }
 
-void ButtonGroup::selectPanel(Panel type)
+void ButtonGroup::selectPanel(Panel type, int point)
 {
     ui->stackedWidget->setCurrentIndex(type);
+    if (type != CallLord)
+        return;
+
+    // 上个抢地主玩家下注1分的话，当前玩家只能下注2或3分
+    if (point == 0)
+    {
+        ui->btnOneScore->setVisible(true);
+        ui->btnTwoScore->setVisible(true);
+        ui->btnThreeScore->setVisible(true);
+    }
+    else if (point == 1)
+    {
+        ui->btnOneScore->setVisible(false);
+        ui->btnTwoScore->setVisible(true);
+        ui->btnThreeScore->setVisible(true);
+    }
+    else if (point == 2)
+    {
+        ui->btnOneScore->setVisible(false);
+        ui->btnTwoScore->setVisible(false);
+        ui->btnThreeScore->setVisible(true);
+    }
 }
