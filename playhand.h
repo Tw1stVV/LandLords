@@ -3,6 +3,7 @@
 #include "cards.h"
 class PlayHand
 {
+public:
     // 出牌组合
     enum HandType
     {

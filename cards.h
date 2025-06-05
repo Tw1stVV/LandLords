@@ -23,8 +23,9 @@ public:
     Cards& operator<<(const Cards& cards);
 
     // 删除扑克牌
-    void remove(Card& card);
-    void remove(Cards& cards);
+    void remove(const Card& card);
+    void remove(const Cards& cards);
+    void remove(const QList<Cards> list);
 
     // 扑克牌数量
     int cardCount();
