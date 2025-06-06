@@ -1,9 +1,151 @@
 #include "strategy.h"
+#include <QMap>
+#include <functional>
 
 Strategy::Strategy(Player* player, const Cards& cards)
 {
     m_player = player;
     m_cards = cards;
+}
+
+Cards Strategy::makeStrategy()
+{
+    // 得到出牌玩家和打出的牌
+    Player* pendPlay = m_player->getPendPlayer();
+    Cards pendCards = m_player->getPendCards();
+
+    // 判断上次出牌的玩家是不是自己
+    if (pendPlay == m_player || pendPlay == nullptr)
+    {
+        // 上轮出牌的玩家是自己，或自己是本局游戏第一次出牌的玩家，出牌没有限制
+        return firstPlay();
+    }
+    else
+    {
+        // 如果不是，找出比出牌玩家打出的牌的点数更大的牌
+        PlayHand type(pendCards);
+        Cards beatCards = getGreaterCards(type);
+
+        // 找到点数更大的牌考虑是否出牌
+        bool isBeat = whetherToBeat(beatCards);
+        if (isBeat)
+            return beatCards;
+        else
+            return Cards();
+    }
+    return Cards();
+}
+
+Cards Strategy::firstPlay()
+{
+}
+
+Cards Strategy::getGreaterCards(PlayHand type)
+{
+    // 1. 自己和出牌方不属于同一阵营
+    Player* pendPlayer = m_player->getPendPlayer();
+    if (pendPlayer->role() != m_player->role() && pendPlayer->getCards().cardCount() <= 3)
+    {
+        // 出牌方剩余的牌小于等于四张时，需要拿出最大的炸弹压制他
+        QList<Cards> bombs = findCardsByCount(4);
+        for (int i = 0; i < bombs.size(); ++i)
+        {
+            if (PlayHand(bombs[i]).canbeat(type))
+                return bombs[i];
+        }
+
+        // 搜索王炸
+        Cards sj = findSamePointCards(Card::Card_SJ, 1);
+        Cards bj = findSamePointCards(Card::Card_BJ, 1);
+        if (!sj.isEmpty() && !bj.isEmpty())
+        {
+            Cards tmp;
+            tmp << sj << bj;
+            return tmp;
+        }
+    }
+
+    // 2. 自己和下家不属于同一阵营
+    Player* nextPlayer = m_player->next();
+    // 剔除自己牌中的顺子在查找可以打的牌
+    Cards remain = m_cards;
+    remain.remove(Strategy(m_player, remain).pickOptimalSeqSingles());
+
+    auto beatCards = std::bind(
+        [=](Cards& cards)
+        {
+            QList<Cards> beatCardsArray = Strategy(m_player, cards).findCardType(type, true);
+            // 在剔除顺子后仍然找的到可以打的牌
+            if (!beatCardsArray.isEmpty())
+            {
+                if (m_player->role() != nextPlayer->role()
+                    && nextPlayer->getCards().cardCount() <= 2)
+                {
+                    // 打大牌
+                    return beatCardsArray.back();
+                }
+                else
+                {
+                    // 打小牌
+                    return beatCardsArray.first();
+                }
+            }
+            return Cards();
+        },
+        std::placeholders::_1);
+
+    Cards cs;
+    if (!(cs = beatCards(remain)).isEmpty())
+    { // 在剔除顺子后找的到可以打的牌
+        return cs;
+    }
+    else
+    { // 在剔除顺子后找不到可以打的牌，将顺子也纳入搜索范围
+        if (!(cs = beatCards(m_cards)).isEmpty())
+            return cs;
+    }
+    return Cards();
+}
+
+bool Strategy::whetherToBeat(Cards cards)
+{
+    if (cards.isEmpty())
+        return false;
+
+    Player* pendPlayer = m_player->getPendPlayer();
+    // 判断自己和出牌方是否属于同一阵营
+    if (m_player->role() == pendPlayer->role())
+    {
+        // 如果将cards打出去之后，手里的牌还剩一个完整的牌型，下一轮有机会就可以打完，就将cards打出
+        Cards left = m_cards;
+        left.remove(cards);
+        if (PlayHand(left).type() != PlayHand::Hand_UnKnow)
+            return true;
+
+        // 如果cards是2，大小王，不压队友，让队友过
+        Card::CardPoint point = PlayHand(cards).point();
+        if (point == Card::Card_2 || point == Card::Card_SJ || point == Card::Card_BJ)
+            return false;
+    }
+    else
+    {
+        PlayHand hand(cards);
+        // 如果牌型是三带一或三带二并且点数是2，不出牌
+        if ((hand.type() == PlayHand::Hand_Triple_Single
+             || hand.type() == PlayHand::Hand_Triple_Pair)
+            && hand.point() == Card::Card_2)
+        {
+            return false;
+        }
+
+        // 如果cards是对2，并且出牌玩家手中的牌大于等于10张，自己手中的牌大于等于5张，暂时放弃出牌
+        if (hand.point() == Card::Card_2 && hand.type() == PlayHand::Hand_Pair
+            && pendPlayer->getCards().cardCount() >= 10 && m_player->getCards().cardCount() >= 5)
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 Cards Strategy::findSamePointCards(Card::CardPoint point, int count)
@@ -132,14 +274,116 @@ QList<Cards> Strategy::findCardType(PlayHand hand, bool beat)
     return QList<Cards>();
 }
 
+// 从cards中挑选满足条件的顺子
+/*
+ *这个条件是指：在拥有的扑克牌中，可以打出的顺子
+ *  这是findCardType选出的顺子组合，它们是不能实际打出来的牌。假如你有3~9这个顺子，你打出了3~8，这时只剩了一张9，不可能在打出一个3~9的顺子
+ *  3,4,5,6,7,8,
+ *  3,4,5,6,7,8,9
+ *  ....
+ *  函数的功能是找到一个可以打出的顺子的集合的集合
+ *  如: 3,4,5,6,7,8,9,10,J,Q,K,A
+ *  3~7 and 10~A是一个可以打出的集合
+ *  ....
+ *  3~9 and 10~A 是一个可以打出的集合
+ *  3~A 是一个可以打出的集合，集合里的牌数=1
+ */
+void Strategy::pickSeqSingles(
+    QList<QList<Cards>>& allSeqRecord, QList<Cards>& seqSingle, const Cards& cards)
+{
+    // 获取cards里所有可能的顺子组合
+    QList<Cards> allSeq =
+        Strategy(m_player, cards)
+            .findCardType(PlayHand(PlayHand::Hand_Seq_Single, Card::Card_Begin, 0), false);
+    if (allSeq.isEmpty())
+    {
+        // 递归出口，表示参数cards里已经没有顺子
+        allSeqRecord << seqSingle;
+    }
+    else
+    {
+        Cards saveCards = cards;
+        for (int i = 0; i < allSeq.size(); ++i)
+        {
+            // 取出顺子
+            Cards aScheme = allSeq.at(i);
+
+            // 将取出的顺子从牌里删除再搜索牌里其他的顺子
+            Cards remain = saveCards;
+            remain.remove(aScheme);
+
+            QList<Cards> seqArray = seqSingle;
+            // 本次找到的顺子保存到seqArray
+            seqArray << aScheme;
+
+            // seqArray作为参数传给pickSeqSingles，递归调用结束时将找到的所有独立的顺子保存到allSeqRecord
+            pickSeqSingles(allSeqRecord, seqArray, remain);
+        }
+    }
+}
+
+QList<Cards> Strategy::pickOptimalSeqSingles()
+{
+    QList<QList<Cards>> seqRecord;
+    QList<Cards> seqSingles;
+    Strategy(m_player, m_cards).pickSeqSingles(seqRecord, seqSingles, m_cards);
+    if (seqRecord.isEmpty())
+        return QList<Cards>();
+
+    QMap<int, int> markMap;
+    for (int i = 0; i < seqRecord.size(); ++i)
+    {
+        // 获取剔除掉所有顺子后剩下的单牌
+        Cards remain = m_cards;
+        QList<Cards> seqArray = seqRecord.at(i);
+        remain.remove(seqArray);
+
+        // 剩下的单排数量越少，顺子就越好
+        QList<Cards> singleArray = Strategy(m_player, remain).findCardsByCount(1);
+        // 将QList<Cards>转换成QList<Card>=CardList方便后续操作
+        CardList cardList;
+        for (int j = 0; j < singleArray.size(); ++j)
+        {
+            cardList << singleArray[j].toCardList();
+        }
+
+        // 单牌越小->顺子点数越大
+        // 单牌越大->顺子点数越小
+        // 剔除顺子主要是为了getGreaterCards()函数不拆散顺子之后选出合适的牌
+        // 这里选择留点数大的牌，留点数小的顺子
+
+        int mark = 0;
+        for (int j = 0; j < cardList.size(); ++j)
+        {
+            mark += cardList.at(i).getPoint();
+        }
+        markMap.insert(i, mark);
+    }
+
+    // 选出mark最高的QList<Cards>
+    // key是seqRecord的索引，value是seqRecord[key]的mark值
+    int value = 0;
+    int key = 0;
+    for (auto it = markMap.constBegin(); it != markMap.constEnd(); ++it)
+    {
+        if (it.value() > value)
+        {
+            value = it.value();
+            key = it.key();
+        }
+    }
+    return seqRecord[key];
+}
+
 QList<Cards> Strategy::getCards(Card::CardPoint point, int number)
 {
     QList<Cards> findCardsList;
     for (int pt = point; pt < Card::Card_End; pt++)
     {
-        Cards cs = findSamePointCards((Card::CardPoint)pt, number);
-        if (!cs.isEmpty())
+        // 尽量不拆分别的牌型
+        if (m_cards.pointCount((Card::CardPoint)pt) == number)
         {
+            Cards cs = findSamePointCards((Card::CardPoint)pt, number);
             findCardsList << cs;
         }
     }

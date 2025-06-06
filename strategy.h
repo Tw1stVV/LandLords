@@ -9,9 +9,16 @@ public:
     Strategy(Player* player, const Cards& cards);
 
     // 1. 制定出牌策略
+    Cards makeStrategy();
+
     // 2. 第一个出牌
+    Cards firstPlay();
+
     // 3. 得到比指定牌型大的牌
+    Cards getGreaterCards(PlayHand type);
+
     // 4. 能大过指定的牌时，判断是出牌还是过 true->出牌 false->过
+    bool whetherToBeat(Cards cards);
 
     // 5. 找出找出count张点数为point的牌
     Cards findSamePointCards(Card::CardPoint point, int count);
@@ -25,6 +32,12 @@ public:
     // 8. 根据牌型找牌，并指定要找的牌是否要大于指定的牌
     QList<Cards> findCardType(PlayHand hand, bool beat);
 
+    // 9. 从cards中挑选满足条件的顺子
+    void
+    pickSeqSingles(QList<QList<Cards>>& allSeqRecord, QList<Cards>& seqSingle, const Cards& cards);
+
+    QList<Cards> pickOptimalSeqSingles();
+
 private:
     using function = Cards (Strategy::*)(Card::CardPoint point);
     struct CardInfo
@@ -33,9 +46,9 @@ private:
         Card::CardPoint end; // 顺子或连对第一张牌的最大点数:10 or Q
         int extra;           // 数量
         bool beat;
-        int number; // 搜索同点数牌的数量:顺子1 连对2
-        int base;   // 顺子或连对最小数量:5 or 3
-        function getSeq;
+        int number;      // 搜索同点数牌的数量:顺子1 连对2
+        int base;        // 顺子或连对最小数量:5 or 3
+        function getSeq; // 函数指针根据不同实例调用对应函数
     };
 
     QList<Cards> getCards(Card::CardPoint point, int number);
@@ -49,6 +62,8 @@ private:
     // beat为true表示寻找连对需要满足最大长度是extra的限制
     // beat为false表示寻找连对不受extra的长度限制
     QList<Cards> getSeqSingleOrSeqPair(CardInfo info);
+
+    QList<Cards> getBomb(Card::CardPoint begin);
 
     Cards getSeqSingle(Card::CardPoint point);
     Cards getSeqPair(Card::CardPoint point);
