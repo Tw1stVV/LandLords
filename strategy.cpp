@@ -1,4 +1,5 @@
 #include "strategy.h"
+#include "qforeach.h"
 #include <QMap>
 #include <functional>
 
@@ -38,6 +39,217 @@ Cards Strategy::makeStrategy()
 
 Cards Strategy::firstPlay()
 {
+    // 玩家手中是否只剩单一类型的牌
+    PlayHand hand(m_cards);
+    if (hand.type() != PlayHand::Hand_UnKnow)
+        return m_cards;
+
+    // 多种类型的牌
+    // 判断是否有顺子
+    QList<Cards> list = pickOptimalSeqSingles();
+    if (!list.isEmpty())
+    {
+        // 对比出顺子前剩下的单牌和出顺子后剩下的单牌来判断要不要出顺子
+        int beforePlay = this->findCardsByCount(1).size();
+        Cards backup = m_cards;
+        backup.remove(list);
+        int afterPlay = Strategy(m_player, backup).findCardsByCount(1).size();
+        if (beforePlay > afterPlay)
+        {
+            return list.first();
+        }
+    }
+
+    bool hasPlane, hasSeqPair, hasTriple;
+    hasPlane = hasSeqPair = hasTriple = false;
+    Cards backup = m_cards;
+
+    // 将炸弹，飞机，三张，连对从手牌中剔除，删除顺序不能变，否则搜索连对或三张时可能会将炸弹拆掉
+    QList<Cards> bombArray =
+        Strategy(m_player, backup)
+            .findCardType(PlayHand(PlayHand::Hand_Bomb, Card::Card_Begin, 0), false);
+    // 先手出牌不考虑出炸弹，直接将炸弹剔除
+    backup.remove(bombArray);
+
+    // 飞机
+    QList<Cards> planeArray =
+        Strategy(m_player, backup)
+            .findCardType(PlayHand(PlayHand::Hand_Plane, Card::Card_Begin, 0), false);
+    if (!planeArray.isEmpty())
+    {
+        hasPlane = true;
+        backup.remove(planeArray);
+    }
+
+    // 三张
+    QList<Cards> tripleArray =
+        Strategy(m_player, backup)
+            .findCardType(PlayHand(PlayHand::Hand_Plane, Card::Card_Begin, 0), false);
+    if (!planeArray.isEmpty())
+    {
+        hasPlane = true;
+        backup.remove(tripleArray);
+    }
+
+    // 连对
+    QList<Cards> pairSeqArray =
+        Strategy(m_player, backup)
+            .findCardType(PlayHand(PlayHand::Hand_Plane, Card::Card_Begin, 0), false);
+    if (!planeArray.isEmpty())
+    {
+        hasPlane = true;
+        backup.remove(pairSeqArray);
+    }
+
+    // 将炸弹，飞机，三张，连对剔除之后，手牌中只剩零散的单张和对子
+
+    // 出牌考虑: 连对>飞机>三带一或三带二
+    // 连对
+    if (hasSeqPair)
+    {
+        // 打最长的连对
+        int maxPair = 0;
+        for (int i = 0; i < pairSeqArray.size(); ++i)
+        {
+            if (planeArray.at(i).cardCount() > maxPair)
+                maxPair = planeArray.at(i).cardCount();
+        }
+    }
+
+    // 飞机
+    if (hasPlane)
+    {
+        // 飞机带两对
+        bool twoPairFound = false;
+        QList<Cards> pairArray;
+        for (Card::CardPoint point = Card::Card_Begin; point < Card::Card_K;
+             (Card::CardPoint)(point + 1))
+        {
+            Cards pair = Strategy(m_player, backup).findSamePointCards(point, 2);
+            if (!pair.isEmpty())
+            {
+                pairArray << pair;
+                // 找到两个对退出
+                if (pairArray.size() == 2)
+                {
+                    twoPairFound = true;
+                    break;
+                }
+            }
+        }
+        if (twoPairFound)
+        {
+            Cards temp = planeArray[0];
+            temp.add(pairArray);
+            return temp;
+        }
+        else
+        {
+            // 飞机带两张
+            bool twoSingleFound = false;
+            QList<Cards> singleArray;
+            for (Card::CardPoint point = Card::Card_Begin; point < Card::Card_Q;
+                 (Card::CardPoint)(point + 1))
+            {
+                Cards single = Strategy(m_player, backup).findSamePointCards(point, 1);
+                // 只找单牌，不拆对子
+                if (backup.pointCount(point) == 1)
+                {
+                    singleArray << single;
+                    if (singleArray.size() == 2)
+                    {
+                        twoSingleFound = true;
+                        break;
+                    }
+                }
+            }
+            if (twoSingleFound)
+            {
+                Cards temp = planeArray[0];
+                temp.add(singleArray);
+                return temp;
+            }
+            else
+            {
+                // 飞机
+                return planeArray[0];
+            }
+        }
+    }
+
+    // 三带一或三带二
+    if (hasTriple)
+    {
+        // 三张太大不先手出
+        if (PlayHand(tripleArray[0]).point() < Card::Card_K)
+        {
+            for (Card::CardPoint point = Card::Card_3; point < Card::Card_A;
+                 (Card::CardPoint)(point + 1))
+            {
+                // 不将对子拆成单牌
+                int pointCount = backup.pointCount(point);
+                if (pointCount == 1)
+                {
+                    Cards single = Strategy(m_player, backup).findSamePointCards(point, 1);
+                    Cards temp = tripleArray[0];
+                    temp << single;
+                    return temp;
+                }
+                else if (pointCount == 2)
+                {
+                    Cards pair = Strategy(m_player, backup).findSamePointCards(point, 2);
+                    Cards temp = tripleArray[0];
+                    temp << pair;
+                    return temp;
+                }
+            }
+            // 没有副牌就打三张
+            return tripleArray[0];
+        }
+    }
+
+    // 执行到这说明玩家手中只有单张牌或对牌
+    Player* nextPlayer = m_player->next();
+    // 下家和玩家不是一个阵营且手中的牌只有一张，玩家需要用大的单牌或对子压住下家
+    if (nextPlayer->getCards().cardCount() == 1 && nextPlayer->role() != m_player->role())
+    {
+        for (Card::CardPoint point = Card::Card_BJ; point > Card::Card_Begin;
+             (Card::CardPoint)(point - 1))
+        {
+            int pointCount = backup.pointCount(point);
+            if (pointCount == 1)
+            {
+                Cards single = Strategy(m_player, backup).findSamePointCards(point, 1);
+                return single;
+            }
+            else if (pointCount == 2)
+            {
+                Cards pair = Strategy(m_player, backup).findSamePointCards(point, 2);
+                return pair;
+            }
+        }
+    }
+    else
+    {
+        // 下家是队友，打出小牌
+        for (Card::CardPoint point = Card::Card_Begin; point < Card::Card_End;
+             (Card::CardPoint)(point + 1))
+        {
+            int pointCount = backup.pointCount(point);
+            if (pointCount == 1)
+            {
+                Cards single = Strategy(m_player, backup).findSamePointCards(point, 1);
+                return single;
+            }
+            else if (pointCount == 2)
+            {
+                Cards pair = Strategy(m_player, backup).findSamePointCards(point, 2);
+                return pair;
+            }
+        }
+    }
+
+    return Cards();
 }
 
 Cards Strategy::getGreaterCards(PlayHand type)
@@ -326,7 +538,12 @@ QList<Cards> Strategy::pickOptimalSeqSingles()
 {
     QList<QList<Cards>> seqRecord;
     QList<Cards> seqSingles;
-    Strategy(m_player, m_cards).pickSeqSingles(seqRecord, seqSingles, m_cards);
+    Cards backup = m_cards;
+    // 不从三张和炸弹里拆顺子
+    backup.remove(findCardsByCount(4));
+    backup.remove(findCardsByCount(3));
+    this->pickSeqSingles(seqRecord, seqSingles, backup);
+
     if (seqRecord.isEmpty())
         return QList<Cards>();
 

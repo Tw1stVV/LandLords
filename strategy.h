@@ -11,7 +11,7 @@ public:
     // 1. 制定出牌策略
     Cards makeStrategy();
 
-    // 2. 第一个出牌
+    // 2. 本轮第一个出牌，或本局游戏第一个出牌
     Cards firstPlay();
 
     // 3. 得到比指定牌型大的牌
@@ -20,7 +20,7 @@ public:
     // 4. 能大过指定的牌时，判断是出牌还是过 true->出牌 false->过
     bool whetherToBeat(Cards cards);
 
-    // 5. 找出找出count张点数为point的牌
+    // 5. 找出count张点数为point的牌
     Cards findSamePointCards(Card::CardPoint point, int count);
 
     // 6. 找出所有点数数量为count的牌，得到一个多张扑克牌数组

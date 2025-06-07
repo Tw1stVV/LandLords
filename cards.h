@@ -17,6 +17,7 @@ public:
     // 添加扑克牌
     void add(const Card& card);
     void add(const Cards& cards);
+    void add(const QList<Cards>& cardsList);
 
     // 一次性添加多张扑克牌
     Cards& operator<<(const Card& card);
@@ -28,7 +29,7 @@ public:
     void remove(const QList<Cards> list);
 
     // 扑克牌数量
-    int cardCount();
+    int cardCount() const;
     // 是否为空
     bool isEmpty();
     // 清空扑克牌

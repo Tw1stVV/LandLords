@@ -21,6 +21,14 @@ void Cards::add(const Cards& cards)
     m_cards.unite(cards.m_cards);
 }
 
+void Cards::add(const QList<Cards>& cardsList)
+{
+    for (int i = 0; i < cardsList.size(); ++i)
+    {
+        this->add(cardsList.at(i));
+    }
+}
+
 Cards& Cards::operator<<(const Card& card)
 {
     add(card);
@@ -51,7 +59,7 @@ void Cards::remove(const QList<Cards> list)
     }
 }
 
-int Cards::cardCount()
+int Cards::cardCount() const
 {
     return m_cards.size();
 }
