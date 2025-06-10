@@ -85,7 +85,7 @@ Cards Strategy::firstPlay()
     QList<Cards> tripleArray =
         Strategy(m_player, backup)
             .findCardType(PlayHand(PlayHand::Hand_Plane, Card::Card_Begin, 0), false);
-    if (!planeArray.isEmpty())
+    if (!tripleArray.isEmpty())
     {
         hasPlane = true;
         backup.remove(tripleArray);
@@ -95,7 +95,7 @@ Cards Strategy::firstPlay()
     QList<Cards> pairSeqArray =
         Strategy(m_player, backup)
             .findCardType(PlayHand(PlayHand::Hand_Plane, Card::Card_Begin, 0), false);
-    if (!planeArray.isEmpty())
+    if (!pairSeqArray.isEmpty())
     {
         hasPlane = true;
         backup.remove(pairSeqArray);
@@ -123,7 +123,7 @@ Cards Strategy::firstPlay()
         bool twoPairFound = false;
         QList<Cards> pairArray;
         for (Card::CardPoint point = Card::Card_Begin; point < Card::Card_K;
-             (Card::CardPoint)(point + 1))
+             point = (Card::CardPoint)(point + 1))
         {
             Cards pair = Strategy(m_player, backup).findSamePointCards(point, 2);
             if (!pair.isEmpty())
@@ -149,7 +149,7 @@ Cards Strategy::firstPlay()
             bool twoSingleFound = false;
             QList<Cards> singleArray;
             for (Card::CardPoint point = Card::Card_Begin; point < Card::Card_Q;
-                 (Card::CardPoint)(point + 1))
+                 point = (Card::CardPoint)(point))
             {
                 Cards single = Strategy(m_player, backup).findSamePointCards(point, 1);
                 // 只找单牌，不拆对子
@@ -184,7 +184,7 @@ Cards Strategy::firstPlay()
         if (PlayHand(tripleArray[0]).point() < Card::Card_K)
         {
             for (Card::CardPoint point = Card::Card_3; point < Card::Card_A;
-                 (Card::CardPoint)(point + 1))
+                 point = (Card::CardPoint)(point + 1))
             {
                 // 不将对子拆成单牌
                 int pointCount = backup.pointCount(point);
@@ -214,7 +214,7 @@ Cards Strategy::firstPlay()
     if (nextPlayer->getCards().cardCount() == 1 && nextPlayer->role() != m_player->role())
     {
         for (Card::CardPoint point = Card::Card_BJ; point > Card::Card_Begin;
-             (Card::CardPoint)(point - 1))
+             point = (Card::CardPoint)(point + 1))
         {
             int pointCount = backup.pointCount(point);
             if (pointCount == 1)
@@ -233,7 +233,7 @@ Cards Strategy::firstPlay()
     {
         // 下家是队友，打出小牌
         for (Card::CardPoint point = Card::Card_Begin; point < Card::Card_End;
-             (Card::CardPoint)(point + 1))
+             point = (Card::CardPoint)(point + 1))
         {
             int pointCount = backup.pointCount(point);
             if (pointCount == 1)
@@ -572,7 +572,7 @@ QList<Cards> Strategy::pickOptimalSeqSingles()
         int mark = 0;
         for (int j = 0; j < cardList.size(); ++j)
         {
-            mark += cardList.at(i).getPoint();
+            mark += cardList.at(j).getPoint();
         }
         markMap.insert(i, mark);
     }
