@@ -178,8 +178,8 @@ void Gamepanel::initPlayerContext()
 
     // 2. 玩家出牌的区域
     const QRect playHandRect[] = {
-        QRect(260, 150, 100, 200),                              // 左侧机器人
-        QRect(rect().right() - 360, 150, 100, 200),             // 右侧机器人
+        QRect(260, 150, 100, 100),                              // 左侧机器人
+        QRect(rect().right() - 360, 150, 100, 100),             // 右侧机器人
         QRect(150, rect().bottom() - 290, width() - 300, 105)}; // 玩家
 
     // 3. 玩家头像位置
@@ -461,7 +461,8 @@ void Gamepanel::updatePlayerCards(Player* player)
         CardPanel* panel = m_cardMap[list.at(i)];
         panel->show();
         panel->raise();
-        panel->setFrontSide(m_contextMap[player].isFrontSide);
+        // panel->setFrontSide(m_contextMap[player].isFrontSide);
+        panel->setFrontSide(true);
 
         // 水平或垂直显示
         if (m_contextMap[player].align == Horizontal)
@@ -492,19 +493,19 @@ void Gamepanel::updatePlayerCards(Player* player)
             panel->raise();
             if (m_contextMap[player].align == Horizontal)
             {
-                int leftX =
-                    playHandrect.left()
-                    + (playHandrect.width() - (lastCardsList.size() - 1) * spacing + panel->width())
-                          / 2;
-                int topY = playHandrect.top() + (playHandrect.height() - panel->height()) / 2;
+                int leftX = playHandrect.left()
+                            + (playHandrect.width() - (lastCardsList.size() - 1) * spacing
+                               + m_baseCards->width())
+                                  / 2;
+                int topY = playHandrect.top() + (playHandrect.height() - m_baseCards->height()) / 2;
                 panel->move(leftX + i * spacing, topY);
             }
             else
             {
-                int leftX = playHandrect.left() + (playHandrect.width() - panel->width()) / 2;
+                int leftX = playHandrect.left() + (playHandrect.width() - m_baseCards->width()) / 2;
                 int topY = playHandrect.top()
                            + (playHandrect.height() - (lastCardsList.size() - 1) * spacing
-                              + panel->height())
+                              + m_baseCards->height())
                                  / 2;
                 panel->move(leftX, topY + i * spacing);
             }
@@ -532,7 +533,7 @@ void Gamepanel::showAnimation(AnimationWindow::AnimationType type, int bet)
             m_animation->setFixedSize(160, 98);
             m_animation->move(
                 (this->width() - m_animation->width()) / 2,
-                (this->height() - m_animation->height()) / 2 - 140);
+                (this->height() - m_animation->height()) / 2 - 180);
             m_animation->showBetScore(bet);
             break;
         }
