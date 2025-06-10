@@ -5,9 +5,10 @@
 #include "cards.h"
 #include <QMainWindow>
 #include "gamecontrol.h"
+#include "animationwindow.h"
+#include "player.h"
 class CardPanel;
-
-class Player;
+// class Player;
 class QLabel;
 class QTimer;
 QT_BEGIN_NAMESPACE
@@ -64,12 +65,24 @@ private:
     // 更新扑克牌在窗口中的窗口
     void updatePlayerCards(Player* player);
 
+    // 显示动画
+    void showAnimation(AnimationWindow::AnimationType type, int bet = 0);
+
+    // 隐藏玩家上一轮打出的牌或提示信息
+    void hidePlayerDropCardsOrInfo(Player* player);
+
+    // 价值玩家头像
+    QPixmap loadRoleImage(Player::Sex sex, Player::Role roe, Player::Direction dirc);
+
 private slots:
     // 处理玩家状态变化
     void onPlayerStatusChanged(Player* player, GameControl::PlayerStatus status);
 
     // 处理玩家抢地主
     void onNotifyGrabLordBet(Player* player, int point, bool firstCallLord);
+
+    // 处理玩家出牌
+    void onNotifyPlayHand(Player* player, const Cards& cards);
 
 private:
     enum CardAlign
@@ -116,6 +129,8 @@ private:
     QPoint baseCardPos;                      // 发牌区的扑克牌的位置
     GameControl::GameStatus m_gameStatus;    // 游戏状态
     QTimer* m_timer;                         // 定时器
+    AnimationWindow* m_animation;
+
     // QWidget interface
 protected:
     virtual void paintEvent(QPaintEvent* event) override;
