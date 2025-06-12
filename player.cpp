@@ -155,6 +155,12 @@ Cards Player::getPendCards()
     return m_pendCards;
 }
 
+void Player::clearPendingInfo()
+{
+    m_pendPlayer = nullptr;
+    m_pendCards = Cards();
+}
+
 void Player::prepareCallLord()
 {
     // 基类不做实现，留给子类处理

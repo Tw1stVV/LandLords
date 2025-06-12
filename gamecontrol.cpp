@@ -298,6 +298,11 @@ void GameControl::onNotifyPlayHand(Player* player, const Cards& cards)
                 previous->setIsWin(true);
             }
         }
+        // 本轮游戏结束重置玩家存储的上轮出牌玩家和出牌信息
+        next->clearPendingInfo();
+        player->clearPendingInfo();
+        previous->clearPendingInfo();
+
         // 通知主界面玩家获胜
         emit playerStatusChanged(player, GameControl::Winning);
         return;

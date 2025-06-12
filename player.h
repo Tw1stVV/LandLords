@@ -97,6 +97,9 @@ public:
     // 获取打出的扑克牌
     Cards getPendCards();
 
+    // 本轮游戏结束后重置出牌玩家和出牌信息
+    void clearPendingInfo();
+
     virtual void prepareCallLord();
     virtual void preparePlayHand();
     virtual void thinkingCallLord();

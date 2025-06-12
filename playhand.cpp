@@ -135,7 +135,7 @@ void PlayHand::judgeCardType()
         m_type = Hand_Triple;
         m_point = m_threeCard[0];
     }
-    else if (isTriple())
+    else if (isTripleSingle())
     {
         m_type = Hand_Triple_Single;
         m_point = m_threeCard[0];

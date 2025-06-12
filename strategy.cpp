@@ -1,5 +1,4 @@
 #include "strategy.h"
-#include "qforeach.h"
 #include <QMap>
 #include <functional>
 
@@ -84,20 +83,20 @@ Cards Strategy::firstPlay()
     // 三张
     QList<Cards> tripleArray =
         Strategy(m_player, backup)
-            .findCardType(PlayHand(PlayHand::Hand_Plane, Card::Card_Begin, 0), false);
+            .findCardType(PlayHand(PlayHand::Hand_Triple, Card::Card_Begin, 0), false);
     if (!tripleArray.isEmpty())
     {
-        hasPlane = true;
+        hasTriple = true;
         backup.remove(tripleArray);
     }
 
     // 连对
     QList<Cards> pairSeqArray =
         Strategy(m_player, backup)
-            .findCardType(PlayHand(PlayHand::Hand_Plane, Card::Card_Begin, 0), false);
+            .findCardType(PlayHand(PlayHand::Hand_Seq_Pair, Card::Card_Begin, 0), false);
     if (!pairSeqArray.isEmpty())
     {
-        hasPlane = true;
+        hasSeqPair = true;
         backup.remove(pairSeqArray);
     }
 
@@ -108,12 +107,13 @@ Cards Strategy::firstPlay()
     if (hasSeqPair)
     {
         // 打最长的连对
-        int maxPair = 0;
+        Cards maxPair;
         for (int i = 0; i < pairSeqArray.size(); ++i)
         {
-            if (planeArray.at(i).cardCount() > maxPair)
-                maxPair = planeArray.at(i).cardCount();
+            if (pairSeqArray.at(i).cardCount() > maxPair.cardCount())
+                maxPair = pairSeqArray.at(i);
         }
+        return maxPair;
     }
 
     // 飞机
@@ -122,7 +122,7 @@ Cards Strategy::firstPlay()
         // 飞机带两对
         bool twoPairFound = false;
         QList<Cards> pairArray;
-        for (Card::CardPoint point = Card::Card_Begin; point < Card::Card_K;
+        for (Card::CardPoint point = Card::Card_Begin; point <= Card::Card_K;
              point = (Card::CardPoint)(point + 1))
         {
             Cards pair = Strategy(m_player, backup).findSamePointCards(point, 2);
@@ -143,13 +143,14 @@ Cards Strategy::firstPlay()
             temp.add(pairArray);
             return temp;
         }
+        // 找不到两个对就找两张
         else
         {
             // 飞机带两张
             bool twoSingleFound = false;
             QList<Cards> singleArray;
-            for (Card::CardPoint point = Card::Card_Begin; point < Card::Card_Q;
-                 point = (Card::CardPoint)(point))
+            for (Card::CardPoint point = Card::Card_Begin; point <= Card::Card_K;
+                 point = (Card::CardPoint)(point + 1))
             {
                 Cards single = Strategy(m_player, backup).findSamePointCards(point, 1);
                 // 只找单牌，不拆对子
@@ -171,7 +172,7 @@ Cards Strategy::firstPlay()
             }
             else
             {
-                // 飞机
+                // 找不到两张打裸飞机
                 return planeArray[0];
             }
         }
@@ -186,7 +187,7 @@ Cards Strategy::firstPlay()
             for (Card::CardPoint point = Card::Card_3; point < Card::Card_A;
                  point = (Card::CardPoint)(point + 1))
             {
-                // 不将对子拆成单牌
+                // 不将对子拆成单牌，只找单牌
                 int pointCount = backup.pointCount(point);
                 if (pointCount == 1)
                 {
@@ -213,8 +214,9 @@ Cards Strategy::firstPlay()
     // 下家和玩家不是一个阵营且手中的牌只有一张，玩家需要用大的单牌或对子压住下家
     if (nextPlayer->getCards().cardCount() == 1 && nextPlayer->role() != m_player->role())
     {
+        // 从大牌往小牌找
         for (Card::CardPoint point = Card::Card_BJ; point > Card::Card_Begin;
-             point = (Card::CardPoint)(point + 1))
+             point = (Card::CardPoint)(point - 1))
         {
             int pointCount = backup.pointCount(point);
             if (pointCount == 1)

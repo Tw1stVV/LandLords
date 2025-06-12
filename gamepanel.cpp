@@ -546,7 +546,7 @@ void Gamepanel::updatePlayerCards(Player* player)
                               + m_baseCards->height())
                                  / 2;
                 panel->move(leftX, topY + i * spacing);
-                qDebug() << "X:" << leftX << " Y:" << topY + i * spacing;
+                // qDebug() << "X:" << leftX << " Y:" << topY + i * spacing;
             }
             panel->show();
         }
@@ -665,6 +665,8 @@ void Gamepanel::showEndingScorePanel()
         m_gameCtl->user()->score());
 
     QPropertyAnimation* animation = new QPropertyAnimation(panel, "geometry", this);
+    // 设置动画持续时间
+    animation->setDuration(1500);
     // 设置动画起始位置和终止位置
     animation->setStartValue(QRect(panel->x(), panel->y(), panel->width(), panel->height()));
     animation->setEndValue(
