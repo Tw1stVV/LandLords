@@ -86,7 +86,7 @@ public:
     void clearCards();
 
     // 玩家打出某张牌
-    void playHand(Card& card);
+    void playHand(const Cards& card);
 
     // 设置出牌的玩家待处理的扑克牌
     void setPendingInfo(Player* player, Cards& cards);
@@ -99,10 +99,22 @@ public:
 
     virtual void prepareCallLord();
     virtual void preparePlayHand();
+    virtual void thinkingCallLord();
+    virtual void thinkingPlayHand();
+
+public slots:
+    // 存储出牌玩家对象和打出的牌
+    void storePendingInfo(Player* player, const Cards& cards);
 
 signals:
     // 通知GameControl开始叫地主下注
     void notifyGrabLordBet(Player* player, int bet);
+
+    // 通知GameControl玩家出牌
+    void notifyPlayHand(Player* player, const Cards& cards);
+
+    // 通知主界面玩家收到扑克牌
+    void notifyPickCards(Player* player, const Cards& cards);
 
 protected:
     QString m_name;

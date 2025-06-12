@@ -31,7 +31,7 @@ public:
     // 扑克牌数量
     int cardCount() const;
     // 是否为空
-    bool isEmpty();
+    bool isEmpty() const;
     // 清空扑克牌
     void clear();
 
@@ -48,7 +48,7 @@ public:
     // 随机取出一张扑克牌
     Card takeRandCard();
 
-    CardList toCardList(sortType type = Desc);
+    CardList toCardList(sortType type = Desc) const;
 
 private:
     QSet<Card> m_cards;

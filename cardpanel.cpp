@@ -61,6 +61,11 @@ Player* CardPanel::getOwner()
     return m_owner;
 }
 
+void CardPanel::clicked()
+{
+    emit CardSelected(Qt::LeftButton);
+}
+
 void CardPanel::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
@@ -74,4 +79,6 @@ void CardPanel::paintEvent(QPaintEvent* event)
 
 void CardPanel::mousePressEvent(QMouseEvent* event)
 {
+    // 选中扑克牌
+    emit CardSelected(event->button());
 }

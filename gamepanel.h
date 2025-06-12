@@ -60,7 +60,7 @@ private:
     void cardMoveStep(Player* curPlayer, int curPos);
 
     // 处理分发得到的扑克牌
-    void disposeCard(Player* player, Cards& cards);
+    void disposeCard(Player* player, const Cards& cards);
 
     // 更新扑克牌在窗口中的窗口
     void updatePlayerCards(Player* player);
@@ -71,8 +71,11 @@ private:
     // 隐藏玩家上一轮打出的牌或提示信息
     void hidePlayerDropCardsOrInfo(Player* player);
 
-    // 价值玩家头像
+    // 加载玩家头像
     QPixmap loadRoleImage(Player::Sex sex, Player::Role roe, Player::Direction dirc);
+
+    // 显示游戏结算窗口
+    void showEndingScorePanel();
 
 private slots:
     // 处理玩家状态变化
@@ -83,6 +86,15 @@ private slots:
 
     // 处理玩家出牌
     void onNotifyPlayHand(Player* player, const Cards& cards);
+
+    // 玩家选中扑克牌
+    void onCardSelected(Qt::MouseButton button);
+
+    // 处理用户玩家出牌
+    void onUserPlayHand();
+
+    // 处理用户玩家不出牌
+    void onUserPass();
 
 private:
     enum CardAlign
@@ -130,9 +142,17 @@ private:
     GameControl::GameStatus m_gameStatus;    // 游戏状态
     QTimer* m_timer;                         // 定时器
     AnimationWindow* m_animation;
+    CardPanel* m_curSelectedCardPanel;    // 当前选中的扑克牌
+    QSet<CardPanel*> m_selectedCards;     // 选中的扑克牌集合
+    QRect m_cardsRect;                    // 非机器人玩家剩余的扑克牌显示的区域
+    QHash<CardPanel*, QRect> m_userCards; // 存储非机器人玩家手中的扑克牌窗口在m_cardsRect中的位置
 
     // QWidget interface
 protected:
     virtual void paintEvent(QPaintEvent* event) override;
+
+    // QWidget interface
+protected:
+    virtual void mouseMoveEvent(QMouseEvent* event) override;
 };
 #endif // GAMEPANEL_H

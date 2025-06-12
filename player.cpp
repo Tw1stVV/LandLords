@@ -4,6 +4,7 @@ Player::Player(QObject* parent) : QObject{parent}
 {
     m_score = 0;
     isWin = false;
+    m_pendPlayer = nullptr;
 }
 
 Player::Player(QString name, QObject* parent) : Player(parent)
@@ -109,11 +110,14 @@ void Player::grabLordBet(int point)
 void Player::storeDispatchCard(Card& card)
 {
     m_cards.add(card);
+    Cards cs(card);
+    emit notifyPickCards(this, cs);
 }
 
 void Player::storeDispatchCard(Cards& cards)
 {
     m_cards.add(cards);
+    emit notifyPickCards(this, cards);
 }
 
 Cards Player::getCards()
@@ -126,10 +130,13 @@ void Player::clearCards()
     m_cards.clear();
 }
 
-void Player::playHand(Card& card)
+void Player::playHand(const Cards& cards)
 {
     // 删除玩家打出的这张牌
-    m_cards.remove(card);
+    m_cards.remove(cards);
+
+    // 发出信号
+    emit notifyPlayHand(this, cards);
 }
 
 void Player::setPendingInfo(Player* player, Cards& cards)
@@ -156,4 +163,20 @@ void Player::prepareCallLord()
 void Player::preparePlayHand()
 {
     // 基类不做实现，留给子类处理
+}
+
+void Player::thinkingCallLord()
+{
+    // 基类不做实现，留给子类处理
+}
+
+void Player::thinkingPlayHand()
+{
+    // 基类不做实现，留给子类处理
+}
+
+void Player::storePendingInfo(Player* player, const Cards& cards)
+{
+    m_pendPlayer = player;
+    m_pendCards = cards;
 }

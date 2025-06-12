@@ -64,7 +64,7 @@ int Cards::cardCount() const
     return m_cards.size();
 }
 
-bool Cards::isEmpty()
+bool Cards::isEmpty() const
 {
     return m_cards.isEmpty();
 }
@@ -140,7 +140,7 @@ Card Cards::takeRandCard()
     return card;
 }
 
-CardList Cards::toCardList(sortType type)
+CardList Cards::toCardList(sortType type) const
 {
     CardList list;
     for (auto i = m_cards.begin(); i != m_cards.end(); ++i)

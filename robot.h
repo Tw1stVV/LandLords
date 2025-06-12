@@ -17,6 +17,9 @@ public:
 public:
     virtual void prepareCallLord() override;
     virtual void preparePlayHand() override;
+
+    virtual void thinkingCallLord() override;
+    virtual void thinkingPlayHand() override;
 };
 
 #endif // ROBOT_H

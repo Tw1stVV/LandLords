@@ -13,7 +13,7 @@ public:
     explicit CardPanel(QWidget* parent = nullptr);
 
     // 设置获取图片函数
-    void    setImage(QPixmap& front, QPixmap& back);
+    void setImage(QPixmap& front, QPixmap& back);
     QPixmap getImage();
 
     // 扑克牌显示那一面
@@ -29,17 +29,21 @@ public:
     Card getCard();
 
     // 扑克牌所有者
-    void    setOwner(Player* player);
+    void setOwner(Player* player);
     Player* getOwner();
 
+    // 发射被鼠标左键点击的信号
+    void clicked();
+
 signals:
+    void CardSelected(Qt::MouseButton button);
 
 private:
     QPixmap m_front;
     QPixmap m_back;
-    bool    m_isfront;
-    bool    m_selected;
-    Card    m_card;
+    bool m_isfront;
+    bool m_selected;
+    Card m_card;
     Player* m_owner;
 
     // QWidget interface
@@ -48,7 +52,7 @@ protected:
 
     // QWidget interface
 protected:
-    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent* event) override;
 };
 
-#endif   // CARDPANEL_H
+#endif // CARDPANEL_H

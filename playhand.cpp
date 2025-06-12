@@ -4,7 +4,7 @@ PlayHand::PlayHand()
 {
 }
 
-PlayHand::PlayHand(Cards& cards)
+PlayHand::PlayHand(const Cards& cards)
 {
     // 1. 对扑克牌进行分类：1张的，2张的，3张的，4张的有多少种
     classify(cards);
@@ -42,7 +42,7 @@ bool PlayHand::canbeat(const PlayHand& other)
         return false;
 
     // 对方不出牌
-    if (m_type == Hand_Pass)
+    if (other.type() == Hand_Pass)
         return true;
 
     // 我是王炸，最大
@@ -50,7 +50,7 @@ bool PlayHand::canbeat(const PlayHand& other)
         return true;
 
     // 我是炸弹 从单张到到顺子都没炸弹大
-    if (m_type == Hand_Bomb && other.type() >= Hand_Single && other.type() < Hand_Seq_Single)
+    if (m_type == Hand_Bomb && other.type() >= Hand_Single && other.type() <= Hand_Seq_Single)
         return true;
 
     // 双方牌型一致
@@ -70,7 +70,7 @@ bool PlayHand::canbeat(const PlayHand& other)
     return false;
 }
 
-void PlayHand::classify(Cards& cards)
+void PlayHand::classify(const Cards& cards)
 {
     CardList list = cards.toCardList();
 
@@ -309,7 +309,7 @@ bool PlayHand::isSeqPair()
         // 只允许相邻的几张牌
         std::sort(m_twoCard.begin(), m_twoCard.end());
         if (m_twoCard.last() - m_twoCard.first() == (m_twoCard.size() - 1)
-            && m_twoCard.first() > Card::Card_3 && m_twoCard.last() < Card::Card_2)
+            && m_twoCard.first() >= Card::Card_3 && m_twoCard.last() < Card::Card_2)
             return true;
     }
     return false;
@@ -323,7 +323,7 @@ bool PlayHand::isSeqSingle()
         // 只允许相邻的几张牌
         std::sort(m_oneCard.begin(), m_oneCard.end());
         if (m_oneCard.last() - m_oneCard.first() == (m_oneCard.size() - 1)
-            && m_oneCard.first() > Card::Card_3 && m_oneCard.last() < Card::Card_2)
+            && m_oneCard.first() >= Card::Card_3 && m_oneCard.last() < Card::Card_2)
             return true;
     }
     return false;

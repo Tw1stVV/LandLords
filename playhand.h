@@ -39,7 +39,7 @@ public:
     PlayHand();
 
     // 传递给类一组牌，分析出牌型，点数，以及相关的附属信息(如连对有多少对，顺子有多少张)
-    PlayHand(Cards& cards);
+    PlayHand(const Cards& cards);
     PlayHand(HandType type, Card::CardPoint point, int extra);
 
     Card::CardPoint point() const;
@@ -51,7 +51,7 @@ public:
 
 private:
     // 对扑克牌进行分类：1张的，2张的，3张的，4张的有多少种
-    void classify(Cards& cards);
+    void classify(const Cards& cards);
 
     // 对牌型进行分类
     void judgeCardType();

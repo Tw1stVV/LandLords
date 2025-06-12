@@ -1,9 +1,11 @@
 #include "gamecontrol.h"
+#include "playhand.h"
 #include "userplayer.h"
 #include "robot.h"
 #include "player.h"
 #include <qDebug>
 #include <QRandomGenerator>
+#include <QTimer>
 
 GameControl::GameControl(QObject* parent) : QObject{parent}
 {
@@ -14,6 +16,8 @@ void GameControl::playerInit()
     m_user = new UserPlayer("自己", this);
     m_robotLeft = new Robot("机器人A", this);
     m_robotRight = new Robot("机器人B", this);
+
+    m_pendPlayer = nullptr;
 
     // 头像显示方位
     m_robotLeft->setDirection(Player::Left);
@@ -45,10 +49,20 @@ void GameControl::playerInit()
     // 指定当前玩家为user,游戏初始化时玩家可以先抢地主
     m_curPlayer = m_user;
 
-    // 处理玩家发送的信号
+    // 处理玩家发送的下注信号
     connect(m_user, &Player::notifyGrabLordBet, this, &GameControl::onGrabBet);
     connect(m_robotLeft, &Player::notifyGrabLordBet, this, &GameControl::onGrabBet);
     connect(m_robotRight, &Player::notifyGrabLordBet, this, &GameControl::onGrabBet);
+
+    // 传递出牌玩家和打出的牌
+    connect(this, &GameControl::pendingInfo, m_robotLeft, &Player::storePendingInfo);
+    connect(this, &GameControl::pendingInfo, m_robotRight, &Player::storePendingInfo);
+    connect(this, &GameControl::pendingInfo, m_user, &Player::storePendingInfo);
+
+    // 处理玩家出牌
+    connect(m_robotLeft, &Robot::notifyPlayHand, this, &GameControl::onNotifyPlayHand);
+    connect(m_robotRight, &Robot::notifyPlayHand, this, &GameControl::onNotifyPlayHand);
+    connect(m_user, &Robot::notifyPlayHand, this, &GameControl::onNotifyPlayHand);
 }
 
 Robot* GameControl::robotLeft() const
@@ -131,19 +145,30 @@ void GameControl::startLordCard()
     emit playerStatusChanged(m_curPlayer, ThinkingForCallLord);
 }
 
-void GameControl::becomeLord(Player* player)
+void GameControl::becomeLord(Player* player, int bet)
 {
+    // 设置下注分数
+    m_betScore = bet;
+
     // 设置身份
     player->setRole(Player::Lord);
     player->previous()->setRole(Player::Farmer);
-    player->previous()->setRole(Player::Farmer);
+    player->next()->setRole(Player::Farmer);
 
     // 获取地主牌
     m_curPlayer = player;
     player->storeDispatchCard(m_allCards);
 
-    // 准备出牌
-    m_curPlayer->preparePlayHand();
+    // 切换游戏状态和玩家状态，并准备出牌
+    QTimer::singleShot(
+        1000,
+        this,
+        [=]()
+        {
+            emit playerStatusChanged(player, ThinkingForPlayHand);
+            emit gameStatusChanged(PlayingHand);
+            m_curPlayer->preparePlayHand();
+        });
 }
 
 void GameControl::clearPlayerScore()
@@ -180,7 +205,7 @@ void GameControl::onGrabBet(Player* player, int point)
     // 2. 判断玩家下注是不是三分，如果是，抢地主结束
     if (point == 3)
     {
-        this->becomeLord(player);
+        this->becomeLord(player, point);
         // 清空数据
         m_betRecord.reset();
         // 结束抢地主
@@ -203,7 +228,7 @@ void GameControl::onGrabBet(Player* player, int point)
             emit gameStatusChanged(DispatchCord);
         else
             // 运行到这说明每个玩家都参与了抢地主，m_betRecord.player只保留下注最高的玩家
-            this->becomeLord(m_betRecord.player);
+            this->becomeLord(m_betRecord.player, point);
         // 重置数据，防止下一轮游戏抢地主时有数据残留
         m_betRecord.reset();
         return;
@@ -215,4 +240,70 @@ void GameControl::onGrabBet(Player* player, int point)
     emit playerStatusChanged(m_curPlayer, ThinkingForCallLord);
     // 切换下个玩家抢地主
     m_curPlayer->prepareCallLord();
+}
+
+void GameControl::onNotifyPlayHand(Player* player, const Cards& cards)
+{
+    // 1. 将玩家出牌信号发送给主界面
+    emit notifyPlayHand(player, cards);
+    // 2.如果不是空牌，保存出牌玩家和打出的牌，并给其他玩家发送信号
+    if (!cards.isEmpty())
+    {
+        m_pendCards = cards;
+        m_pendPlayer = player;
+        emit pendingInfo(player, cards);
+    }
+    // 3.出牌是炸弹或者王炸将下注分数*2
+    PlayHand::HandType type = PlayHand(cards).type();
+    if (type == PlayHand::Hand_Bomb || type == PlayHand::Hand_Bomb_Jokers)
+    {
+        m_betScore *= 2;
+    }
+
+    // 3.玩家出完牌，计算本局游戏总分
+    if (player->getCards().isEmpty())
+    {
+        // 地主获胜地主玩家加上游戏总分*2，农民获胜农民加上游戏总分*1
+        Player* previous = player->previous();
+        Player* next = player->next();
+        if (player->role() == Player::Lord)
+        {
+            // 出牌玩家是地主
+            player->setScore(player->score() + m_betScore * 2);
+            previous->setScore(previous->score() - m_betScore);
+            next->setScore(next->score() - m_betScore);
+            player->setIsWin(true);
+            previous->setIsWin(false);
+            next->setIsWin(false);
+        }
+        else
+        {
+            // 出牌玩家是农民
+            player->setScore(player->score() + m_betScore);
+            player->setIsWin(true);
+            if (previous->role() == Player::Lord)
+            {
+                // 上家是地主
+                next->setScore(next->score() + m_betScore);
+                previous->setScore(previous->score() - m_betScore * 2);
+                next->setIsWin(true);
+                previous->setIsWin(false);
+            }
+            else
+            {
+                // 下家是地主
+                next->setScore(next->score() - m_betScore * 2);
+                previous->setScore(previous->score() + m_betScore);
+                next->setIsWin(false);
+                previous->setIsWin(true);
+            }
+        }
+        // 通知主界面玩家获胜
+        emit playerStatusChanged(player, GameControl::Winning);
+        return;
+    }
+    // 4.玩家没有出完牌，切换下个玩家出牌
+    m_curPlayer = player->next();
+    m_curPlayer->preparePlayHand();
+    emit playerStatusChanged(m_curPlayer, ThinkingForPlayHand);
 }
