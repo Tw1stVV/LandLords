@@ -3,6 +3,7 @@
 
 #include "card.h"
 #include "cards.h"
+#include "countdown.h"
 #include <QMainWindow>
 #include "gamecontrol.h"
 #include "animationwindow.h"
@@ -77,6 +78,9 @@ private:
     // 显示游戏结算窗口
     void showEndingScorePanel();
 
+    // 初始化倒计时窗口
+    void initCountDown();
+
 private slots:
     // 处理玩家状态变化
     void onPlayerStatusChanged(Player* player, GameControl::PlayerStatus status);
@@ -95,6 +99,9 @@ private slots:
 
     // 处理用户玩家不出牌
     void onUserPass();
+
+    // 更新赌注
+    void updateBeat(int beat);
 
 private:
     enum CardAlign
@@ -146,6 +153,7 @@ private:
     QSet<CardPanel*> m_selectedCards;     // 选中的扑克牌集合
     QRect m_cardsRect;                    // 非机器人玩家剩余的扑克牌显示的区域
     QHash<CardPanel*, QRect> m_userCards; // 存储非机器人玩家手中的扑克牌窗口在m_cardsRect中的位置
+    CountDown* m_countDown;
 
     // QWidget interface
 protected:

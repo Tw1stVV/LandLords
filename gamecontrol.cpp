@@ -9,6 +9,7 @@
 
 GameControl::GameControl(QObject* parent) : QObject{parent}
 {
+    m_betScore = 0;
 }
 
 void GameControl::playerInit()
@@ -202,6 +203,9 @@ void GameControl::onGrabBet(Player* player, int point)
         emit notifyGrabLordBet(player, point, false);
     }
 
+    // 更新主界面赌注点数
+    emit notifyUpdateBeatPoint(point);
+
     // 2. 判断玩家下注是不是三分，如果是，抢地主结束
     if (point == 3)
     {
@@ -258,6 +262,7 @@ void GameControl::onNotifyPlayHand(Player* player, const Cards& cards)
     if (type == PlayHand::Hand_Bomb || type == PlayHand::Hand_Bomb_Jokers)
     {
         m_betScore *= 2;
+        emit notifyUpdateBeatPoint(m_betScore);
     }
 
     // 3.玩家出完牌，计算本局游戏总分
@@ -305,10 +310,17 @@ void GameControl::onNotifyPlayHand(Player* player, const Cards& cards)
 
         // 通知主界面玩家获胜
         emit playerStatusChanged(player, GameControl::Winning);
+        // 重置赌注
+        m_betScore = 0;
         return;
     }
     // 4.玩家没有出完牌，切换下个玩家出牌
     m_curPlayer = player->next();
     m_curPlayer->preparePlayHand();
     emit playerStatusChanged(m_curPlayer, ThinkingForPlayHand);
+}
+
+int GameControl::betScore() const
+{
+    return m_betScore;
 }

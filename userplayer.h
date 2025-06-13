@@ -13,7 +13,8 @@ public:
     // 使用父类构造函数
     using Player::Player;
 
-
+signals:
+    void startCountDown();
 
     // Player interface
 public:

@@ -83,6 +83,8 @@ public:
     // 获取玩家下注的最大点数
     int getPlayerMaxBetPoint();
 
+    int betScore() const;
+
 private slots:
     // 处理叫地主
     void onGrabBet(Player* player, int point);
@@ -104,6 +106,9 @@ signals:
 
     //  传递玩家出牌信息
     void pendingInfo(Player* player, const Cards& cards);
+
+    // 通知主界面更新赌注
+    void notifyUpdateBeatPoint(int betScore);
 
 private:
     Robot* m_robotLeft;

@@ -63,9 +63,10 @@ EndingPanel::EndingPanel(bool isLord, bool isWin, QWidget* parent) : QWidget{par
     connect(m_continue, &QPushButton::clicked, this, &EndingPanel::continueGame);
 }
 
-void EndingPanel::setPlayerScore(int left, int right, int me)
+void EndingPanel::setPlayerScore(int left, int right, int me, int beat)
 {
     m_score->setScore(left, right, me);
+    m_score->setBeat(beat);
 }
 
 void EndingPanel::paintEvent(QPaintEvent* event)

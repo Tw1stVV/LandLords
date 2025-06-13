@@ -11,4 +11,5 @@ void UserPlayer::prepareCallLord()
 
 void UserPlayer::preparePlayHand()
 {
+    emit startCountDown();
 }

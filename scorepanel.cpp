@@ -6,7 +6,8 @@ ScorePanel::ScorePanel(QWidget* parent) : QWidget(parent), ui(new Ui::ScorePanel
 {
     ui->setupUi(this);
     list << ui->label_3 << ui->label_4 << ui->label_8 << ui->myTitle << ui->leftTitle
-         << ui->rightTitle << ui->myScore << ui->leftScore << ui->rightScore;
+         << ui->rightTitle << ui->myScore << ui->leftScore << ui->rightScore << ui->beatLebel
+         << ui->beatScore << ui->label_9;
 }
 
 ScorePanel::~ScorePanel()
@@ -37,4 +38,9 @@ void ScorePanel::setMyFontColor(FontColor color)
     {
         list[i]->setStyleSheet(style);
     }
+}
+
+void ScorePanel::setBeat(int beat)
+{
+    ui->beatScore->setText(QString::number(beat));
 }

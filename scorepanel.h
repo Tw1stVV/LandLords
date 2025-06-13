@@ -27,6 +27,7 @@ public:
     void setScore(int left, int right, int user);
     void setMyFontSize(int point);
     void setMyFontColor(FontColor color);
+    void setBeat(int beat);
 
 private:
     QList<QLabel*> list;
