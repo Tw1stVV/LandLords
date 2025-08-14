@@ -1,6 +1,6 @@
 #include "robotgrablord.h"
 #include "robot.h"
-RobotGrabLord::RobotGrabLord(Robot* robot, QObject* parent) : m_robot(robot), QThread(parent)
+RobotGrabLord::RobotGrabLord(Robot* robot, QObject* parent) : QThread(parent), m_robot(robot)
 {
 }
 

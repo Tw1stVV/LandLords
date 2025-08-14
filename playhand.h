@@ -49,6 +49,9 @@ public:
     // 比较双方牌型大小
     bool canbeat(const PlayHand& other);
 
+    // 对扑克牌进行排序，主牌在前，副牌在后
+    // Cards sort();
+
 private:
     // 对扑克牌进行分类：1张的，2张的，3张的，4张的有多少种
     void classify(const Cards& cards);

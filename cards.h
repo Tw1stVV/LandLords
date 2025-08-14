@@ -39,14 +39,18 @@ public:
     Card::CardPoint maxPoint();
     // 最小点数
     Card::CardPoint minPoint();
-    // 指定的牌的数量
+    // 指定点数的牌的数量
     int pointCount(Card::CardPoint point);
+    int pointCount(Card::CardPoint point, const CardList& list);
     // 某张或某几张牌是否在集合中
     bool contains(const Card& card);
     bool contails(const Cards& cards);
 
     // 随机取出一张扑克牌
     Card takeRandCard();
+
+    // 将扑克牌按主牌在前，副牌在后的方式排序
+    CardList sort();
 
     CardList toCardList(sortType type = Desc) const;
 

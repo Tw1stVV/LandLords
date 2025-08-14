@@ -67,8 +67,13 @@ Cards Strategy::firstPlay()
     QList<Cards> bombArray =
         Strategy(m_player, backup)
             .findCardType(PlayHand(PlayHand::Hand_Bomb, Card::Card_Begin, 0), false);
-    // 先手出牌不考虑出炸弹，直接将炸弹剔除
+    // 先手出牌不考虑出炸弹，直接将炸弹剔除,除非手里只剩下多个炸弹
     backup.remove(bombArray);
+    if (backup.isEmpty() && !bombArray.isEmpty())
+    {
+        Cards temp = bombArray[0];
+        return temp;
+    }
 
     // 飞机
     QList<Cards> planeArray =

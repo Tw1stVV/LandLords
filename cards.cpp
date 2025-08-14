@@ -1,4 +1,5 @@
 #include "cards.h"
+#include "qdebug.h"
 
 #include <QRandomGenerator>
 
@@ -119,6 +120,19 @@ int Cards::pointCount(Card::CardPoint point)
     return count;
 }
 
+int Cards::pointCount(Card::CardPoint point, const CardList& list)
+{
+    int count = 0;
+    for (auto it = list.begin(); it != list.end(); ++it)
+    {
+        if (it->getPoint() == point)
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
 bool Cards::contains(const Card& card)
 {
     return m_cards.contains(card);
@@ -138,6 +152,40 @@ Card Cards::takeRandCard()
     Card card = *it;
     m_cards.erase(it);
     return card;
+}
+
+CardList Cards::sort()
+{
+    // 降序排序
+    CardList list = toCardList();
+    CardList temp;
+
+    // 将三张或炸弹从牌中取出来
+    for (int i = 0; i < list.size(); ++i)
+    {
+        int count = pointCount(list.at(i).getPoint(), list);
+        if (count == 3 || count == 4)
+        {
+            for (int j = i; j < i + count; ++j)
+            {
+                temp << list.at(j);
+            }
+            i += count - 1;
+        }
+    }
+
+    if (temp.isEmpty())
+        return list;
+
+    // 将三张或炸弹从牌中删除
+    for (int i = 0; i < temp.size(); ++i)
+    {
+        list.removeAll(temp.at(i));
+    }
+    // 将主牌排在亲前，副牌在后
+    temp << list;
+
+    return temp;
 }
 
 CardList Cards::toCardList(sortType type) const

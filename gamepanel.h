@@ -8,11 +8,13 @@
 #include "gamecontrol.h"
 #include "animationwindow.h"
 #include "player.h"
+
+QT_BEGIN_NAMESPACE
 class CardPanel;
 // class Player;
 class QLabel;
 class QTimer;
-QT_BEGIN_NAMESPACE
+class BGMControl;
 namespace Ui
 {
     class Gamepanel;
@@ -54,11 +56,11 @@ private:
     // 发牌前的设置
     void startDispatchCard();
 
-    // 定期器处理
+    // 发牌定时器处理
     void onDispatchCard();
 
     // 移动扑克牌
-    void cardMoveStep(Player* curPlayer, int curPos);
+    void cardMoveStep(Player* curPlayer, int curPos, int floatPos = 0);
 
     // 处理分发得到的扑克牌
     void disposeCard(Player* player, const Cards& cards);
@@ -80,6 +82,9 @@ private:
 
     // 初始化倒计时窗口
     void initCountDown();
+
+    // 修改玩家头像
+    void changePlayerImg(Player* player, Player::Role);
 
 private slots:
     // 处理玩家状态变化
@@ -139,7 +144,7 @@ private:
     GameControl* m_gameCtl;
     QList<Player*> m_playerList;             // 保存玩家类
     QMap<Card, CardPanel*> m_cardMap;        // 保存卡牌和对应的卡牌窗口
-    QSize m_cardSize;                        // 每张扑克牌的大小
+    QSize m_cardSize;                        // 每张扑克牌的大小 w:80 h:105
     QPixmap m_cardBackgroundImage;           // 扑克牌背面图片
     QMap<Player*, PlayContext> m_contextMap; // 存储玩家上下文信息
     CardPanel* m_baseCards;                  // 发牌区的扑克牌
@@ -154,6 +159,7 @@ private:
     QRect m_cardsRect;                    // 非机器人玩家剩余的扑克牌显示的区域
     QHash<CardPanel*, QRect> m_userCards; // 存储非机器人玩家手中的扑克牌窗口在m_cardsRect中的位置
     CountDown* m_countDown;
+    BGMControl* m_bgm;
 
     // QWidget interface
 protected:

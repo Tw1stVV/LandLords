@@ -42,7 +42,7 @@ CountDown::CountDown(QWidget* parent) : QWidget{parent}
 
 void CountDown::showCountDown()
 {
-    m_count = 5;
+    m_count = 15;
     m_timer->start(1000);
 }
 

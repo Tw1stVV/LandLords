@@ -1,11 +1,13 @@
-#include "gamepanel.h"
-
+#include "loading.h"
+#include "cards.h"
 #include <QApplication>
-
-int main(int argc, char *argv[])
+#include <QResource>
+int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
-    Gamepanel w;
+    qRegisterMetaType<Cards>("Cards&");
+    QResource::registerResource("./resource.rcc");
+    Loading w;
     w.show();
     return a.exec();
 }

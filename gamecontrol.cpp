@@ -312,6 +312,7 @@ void GameControl::onNotifyPlayHand(Player* player, const Cards& cards)
         emit playerStatusChanged(player, GameControl::Winning);
         // 重置赌注
         m_betScore = 0;
+        emit notifyUpdateBeatPoint(m_betScore);
         return;
     }
     // 4.玩家没有出完牌，切换下个玩家出牌

@@ -1,4 +1,5 @@
 #include "robot.h"
+#include "qdebug.h"
 #include "strategy.h"
 #include "robotgrablord.h"
 #include "robotplayhand.h"
@@ -10,12 +11,30 @@ Robot::Robot(QObject* parent) : Player{parent}
 void Robot::prepareCallLord()
 {
     RobotGrabLord* subThread = new RobotGrabLord(this);
+    connect(
+        subThread,
+        &QThread::finished,
+        this,
+        [=]()
+        {
+            qDebug() << "RobotGrabLord子线程对象析构...." << ", Robot name: " << this->name();
+            subThread->deleteLater();
+        });
     subThread->start();
 }
 
 void Robot::preparePlayHand()
 {
     RobotPlayHand* subThread = new RobotPlayHand(this);
+    connect(
+        subThread,
+        &QThread::finished,
+        this,
+        [=]()
+        {
+            qDebug() << "RobotPlayHand子线程对象析构...." << ", Robot name: " << this->name();
+            subThread->deleteLater();
+        });
     subThread->start();
 }
 

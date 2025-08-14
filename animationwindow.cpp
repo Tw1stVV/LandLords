@@ -24,6 +24,10 @@ void AnimationWindow::showBetScore(int bet)
     {
         m_image.load(":/images/score3.png");
     }
+    else
+    {
+        m_image = QPixmap();
+    }
     this->update();
     QTimer::singleShot(1500, this, &AnimationWindow::hide);
 }
